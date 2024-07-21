@@ -43,7 +43,7 @@ processes:
 
   auth:
     command: |
-      docker run -p 3000:3000 -p 3001:3001 \
+      docker run --name authn --rm -p 3000:3000 -p 3001:3001 \
         -v authn-data:/data \
         -e APP_DOMAINS="localhost" \
         -e AUTHN_URL="http://localhost:3000" \
