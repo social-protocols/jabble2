@@ -16,6 +16,9 @@ import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
 object Main extends IOApp.Simple {
+  import webcodegen.shoelace.SlButton.{value as _, *}
+  import webcodegen.shoelace.SlButton
+
   def run = lift {
 
     val myComponent = div(
@@ -24,6 +27,7 @@ object Main extends IOApp.Simple {
       authControl,
       button("inc", onClick.doEffect(RpcClient.call.increment(7).void)),
       button("inc auth", onClick.doEffect(RpcClient.call.incrementAuthorized(7).void)),
+      slButton("SLButton"),
     )
 
     // render the component into the <div id="app"></div> in index.html
