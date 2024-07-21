@@ -7,4 +7,10 @@ trait RpcApi {
   def register(username: String, password: String): IO[Unit]
   def increment(x: Int): IO[Int]
   def incrementAuthorized(x: Int): IO[Int]
+  def createPost(content: String): IO[Unit]
+  def getPosts(): IO[Vector[Post]]
 }
+
+
+case class Post(id: Int, parentId: Option[Int], authorId: String, content: String) derives ReadWriter
+

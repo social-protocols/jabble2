@@ -56,7 +56,8 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
         magnum.connect(ds) {
           db.UserProfileRepo.insert(db.UserProfile.Creator(userId = accountImport.id.toString, userName = username))
         }
-      }.onError(_ =>
+      }.onError(e =>
+        scribe.info("account creation failed", e)
         // if database fails, remove the just created account
         authnClient.archiveAccount(accountImport.id.toString)
       )
@@ -70,5 +71,23 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
       x + 1
     }
   }
+
+
+  def createPost(content: String): IO[Unit] = withUser { userId =>
+    IO {
+      magnum.connect(ds) {
+        db.PostRepo.insert(db.Post.Creator(parentId = None, authorId = userId, content = content))
+      }
+    }
+  }
+
+  def getPosts(): IO[Vector[rpc.Post]] = {
+    IO {
+      magnum.connect(ds) {
+        db.PostRepo.findAll.map(_.to[rpc.Post])
+      }
+    }
+  }
+
 
 }
