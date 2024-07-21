@@ -1,0 +1,74 @@
+package backend
+
+import cats.effect.IO
+import org.http4s.Request
+import org.http4s.headers.Authorization
+import org.http4s.AuthScheme
+import org.http4s.Credentials
+import cats.implicits.*
+import com.augustnagro.magnum
+import com.augustnagro.magnum.*
+import io.github.arainko.ducktape.*
+import javax.sql.DataSource
+import org.http4s.ember.client.EmberClientBuilder
+import cats.effect.unsafe.implicits.global // TODO
+import scala.util.control.NonFatal
+import scala.concurrent.duration.*
+
+import authn.backend.TokenVerifier
+import authn.backend.AuthnClient
+import authn.backend.AuthnClientConfig
+import authn.backend.AccountImport
+
+import java.util.concurrent.Executors
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
+
+private val threadPool                     = Executors.newFixedThreadPool(2)
+private val dbec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
+
+class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
+
+  // Authn integration
+  val headers: Option[Authorization] = request.headers.get[Authorization]
+  val token: Option[String]          = headers.collect { case Authorization(Credentials.Token(AuthScheme.Bearer, token)) => token }
+  val httpClient                     = EmberClientBuilder.default[IO].withTimeout(44.seconds).build.allocated.map(_._1).unsafeRunSync() // TODO not forever
+  val authnClient = AuthnClient[IO](
+    AuthnClientConfig(
+      issuer = "http://localhost:3000",
+      audiences = Set("localhost"),
+      username = "admin",
+      password = "adminpw",
+      adminURL = Some("http://localhost:3001"),
+    ),
+    httpClient = httpClient,
+  )
+  val verifier                          = TokenVerifier[IO]("http://localhost:3000", Set("localhost"))
+  def userAccountId: IO[Option[String]] = token.traverse(token => verifier.verify(token).map(_.accountId))
+  def withUser[T](code: String => IO[T]): IO[T] = userAccountId.flatMap {
+    case Some(accountId) => code(accountId)
+    case None            => IO.raiseError(Exception("403 Unauthorized"))
+  }
+
+  def register(username: String, password: String): IO[Unit] = lift {
+    val accountImport = unlift(authnClient.importAccount(AccountImport(username, password)))
+    unlift(
+      IO {
+        magnum.connect(ds) {
+          db.UserProfileRepo.insert(db.UserProfile.Creator(userId = accountImport.id.toString, userName = username))
+        }
+      }.onError(_ =>
+        // if database fails, remove the just created account
+        authnClient.archiveAccount(accountImport.id.toString)
+      )
+    )
+  }
+
+  def increment(x: Int): IO[Int] = IO.pure(x + 1)
+  def incrementAuthorized(x: Int): IO[Int] = withUser { user =>
+    lift {
+      println(s"user $user incremented")
+      x + 1
+    }
+  }
+
+}

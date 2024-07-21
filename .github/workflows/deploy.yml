@@ -1,0 +1,43 @@
+name: Deploy
+on:
+  push:
+    branches: ['master']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  EARTHLY_VERSION: v0.8.12
+  EARTHLY_TOKEN: ${{ secrets.EARTHLY_TOKEN }}
+  EARTHLY_ORG: ${{ secrets.EARTHLY_ORG }}
+  EARTHLY_SATELLITE: ${{ secrets.EARTHLY_SATELLITE }}
+  EARTHLY_CI: true
+  GITHUB_ACTIONS: true # Better earthly outputs in github actions
+  FORCE_COLOR: 1
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+
+    steps:
+    - name: Install earthly
+      uses: earthly/actions-setup@v1
+      with:
+        version: ${{ env.EARTHLY_VERSION }}
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Deploy
+      run:
+        earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=${{ github.sha }}
+      env:
+        FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

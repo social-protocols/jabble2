@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+if [ $# -eq 0 ]; then
+    echo "Usage: <migration-name>"
+    exit 1
+fi
+
+migrations_path="./backend/resources/migrations"
+schema_path="./schema.sql"
+
+num_migrations=$(find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" | wc -l)
+
+migration_path="${migrations_path}/V$(($num_migrations + 1))__$(echo "$@" | sed 's/[^a-zA-Z0-9._-]/_/g').sql"
+target_db_path="${migration_path}.target.db"
+reference_db_path="${migration_path}.reference.db"
+
+rm -f "${target_db_path}" "${reference_db_path}" "${target_db_path}.schema" "${reference_db_path}.schema"
+
+echo "Set up reference database from schema file"
+cat "$schema_path" | sqlite3 -init /dev/null "${reference_db_path}"
+
+echo "Set up target database by running all migrations"
+find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" -print0 | sort -z -n | xargs -0 awk 'ENDFILE {print ";"} 1' | sqlite3 -init /dev/null "${target_db_path}"
+
+echo "Calculate schema diff and generate migration steps"
+atlas schema diff --to="sqlite://${reference_db_path}" --from="sqlite://${target_db_path}" | grep -v "^Schemas are synced, no changes to be made.$" > "${migration_path}"
+echo "Migration written to: ${migration_path}"
+
+echo "Test apply migration"
+
+cat "${migration_path}" | sqlite3 -init /dev/null "${target_db_path}"
+
+echo "Diff the final state after migration with schemacrawler"
+
+schemacrawler --server=sqlite --database=${target_db_path} --command=details --info-level=detailed | grep -v "^generated on" > ${target_db_path}.schema
+schemacrawler --server=sqlite --database=${reference_db_path} --command=details --info-level=detailed | grep -v "^generated on" > ${reference_db_path}.schema
+diff ${target_db_path}.schema ${reference_db_path}.schema || true
+
+rm "${target_db_path}" "${reference_db_path}" "${target_db_path}.schema" "${reference_db_path}.schema"

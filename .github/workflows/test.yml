@@ -1,0 +1,40 @@
+name: Test
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  EARTHLY_VERSION: v0.8.12
+  EARTHLY_TOKEN: ${{ secrets.EARTHLY_TOKEN }}
+  EARTHLY_ORG: ${{ secrets.EARTHLY_ORG }}
+  EARTHLY_SATELLITE: ${{ secrets.EARTHLY_SATELLITE }}
+  EARTHLY_CI: true
+  GITHUB_ACTIONS: true # Better earthly outputs in github actions
+  FORCE_COLOR: 1
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-22.04 # https://github.com/actions/runner-images?tab=readme-ov-file#available-images
+    timeout-minutes: 60
+
+    steps:
+    - name: Install earthly
+      uses: earthly/actions-setup@v1
+      with:
+        version: ${{ env.EARTHLY_VERSION }}
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Test
+      run: earthly --allow-privileged --no-output +ci-test
