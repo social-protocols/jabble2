@@ -2,43 +2,43 @@ environment:
   - "FORCE_COLOR=1"
 processes:
 
-  bun-install:
+  npm:
     command: bun install --color=always
 
-  mill-build:
+  init:
     # initial mill build, so that vite finds the js files referenced in main.js
     command: mill --color true frontend.fastLinkJS
 
-  vite-dev:
+  vite:
     command: bunx vite dev --port 5173 --strictPort
     ports:
       - 5173:5173
     depends_on:
-      bun-install:
+      npm:
         condition: process_completed_successfully
-      mill-build:
+      init:
         # vite should start, even if the initial build failed
         condition: process_completed
 
-  frontend:
+  front:
     command: mill --color true --watch frontend.fastLinkJS
     env:
       LOG_LEVEL:debug
     depends_on:
-      mill-build:
+      mill:
         # watch should start, even if the initial build failed
         condition: process_completed
 
-  backend:
+  back:
     command: mill --color true --watch backend.runBackground
     env:
       LOG_LEVEL:debug
     depends_on:
-      mill-build:
+      init:
         # watch should start, even if the initial build failed
         condition: process_completed
 
-  db-seed:
+  seed:
     command: echo schema.sql | entr -n bash -c "echo seeding database...; rm -f data.db; sqlite3 -init /dev/null data.db < schema.sql && echo success."
 
   auth:
