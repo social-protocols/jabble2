@@ -365,6 +365,42 @@
         }
       }
     },
+    "jdk-headless@21": {
+      "last_modified": "2024-06-12T20:55:33Z",
+      "resolved": "github:NixOS/nixpkgs/a9858885e197f984d92d7fe64e9fff6b2e488d40#jdk21_headless",
+      "source": "devbox-search",
+      "version": "21+35",
+      "systems": {
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/cnh8bcc5p6a9zash8wbvii9arqmsgypy-openjdk-headless-21+35",
+              "default": true
+            },
+            {
+              "name": "debug",
+              "path": "/nix/store/4wzylhnkc277maikzxmc6sihlajd81yj-openjdk-headless-21+35-debug"
+            }
+          ],
+          "store_path": "/nix/store/cnh8bcc5p6a9zash8wbvii9arqmsgypy-openjdk-headless-21+35"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/b5c03ljd9290bkp4b9356wdvncsh5ixv-openjdk-headless-21+35",
+              "default": true
+            },
+            {
+              "name": "debug",
+              "path": "/nix/store/hw9naadfxlvrp0mx1ccd5hhw9aqr1nh6-openjdk-headless-21+35-debug"
+            }
+          ],
+          "store_path": "/nix/store/b5c03ljd9290bkp4b9356wdvncsh5ixv-openjdk-headless-21+35"
+        }
+      }
+    },
     "just@latest": {
       "last_modified": "2024-05-22T06:18:38Z",
       "resolved": "github:NixOS/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e#just",
