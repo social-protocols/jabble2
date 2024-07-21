@@ -43,6 +43,8 @@ processes:
 
   auth:
     command: |
+      # https://github.com/keratin/authn-server/tree/main/docs#readme
+      docker volume rm authn-data
       docker run --name authn --rm -p 3000:3000 -p 3001:3001 \
         -v authn-data:/data \
         -e APP_DOMAINS="localhost" \
