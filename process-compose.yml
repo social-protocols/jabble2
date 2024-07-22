@@ -7,7 +7,7 @@ processes:
 
   init:
     # initial mill build, so that vite finds the js files referenced in main.js
-    command: mill --color true frontend.fastLinkJS
+    command: mill --jobs 0 --color true '{backend.compile,frontend.fastLinkJS}'
 
   vite:
     command: bunx vite dev --port 5173 --strictPort
@@ -20,17 +20,8 @@ processes:
         # vite should start, even if the initial build failed
         condition: process_completed
 
-  front:
-    command: mill --color true --watch frontend.fastLinkJS
-    env:
-      LOG_LEVEL:debug
-    depends_on:
-      init:
-        # watch should start, even if the initial build failed
-        condition: process_completed
-
-  back:
-    command: mill --color true --watch backend.runBackground
+  mill:
+    command: mill --jobs 0 --color true --watch '{backend.runBackground,frontend.fastLinkJS}'
     env:
       LOG_LEVEL:debug
     depends_on:
