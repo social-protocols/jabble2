@@ -25,7 +25,7 @@ processes:
     env:
       LOG_LEVEL:debug
     depends_on:
-      mill:
+      init:
         # watch should start, even if the initial build failed
         condition: process_completed
 
