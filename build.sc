@@ -41,6 +41,8 @@ trait AppScalaModule extends ScalaModule {
       "-Yimports:java.lang,scala,scala.Predef,scala.util.chaining,cps.syntax.monadless,cps.monads.catsEffect",
     ) ++ Option.when(isCi)("-Xfatal-warnings")
   }
+
+  def forkArgs = Seq("-Xmx256m")
 }
 
 trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
