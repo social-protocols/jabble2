@@ -17,6 +17,8 @@ import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{value as _, *}
 import webcodegen.shoelace.SlInput
 import colibri.router.*
+import webcodegen.shoelace.SlCard.*
+import webcodegen.shoelace.SlCard
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
@@ -50,12 +52,7 @@ object Main extends IOApp.Simple {
     val myComponent = div(
       page.map(_.toString),
       "Hello World",
-      // RpcClient.call.increment(6),
       authControl,
-      button("inc", onClick.doEffect(RpcClient.call.increment(7).void)),
-      button("inc auth", onClick.doEffect(RpcClient.call.incrementAuthorized(7).void)),
-      slButton("SLButton"),
-
       createPostForm,
       postFeed,
     )
@@ -80,25 +77,26 @@ def authControl = {
 
   div(
     slInput(
-      SlInput.placeholder:="Username",
+      SlInput.placeholder := "Username",
       value <-- usernameState,
       onSlInput.map(_.target.value) --> usernameState,
     ),
     slInput(
-      SlInput.placeholder:="Password", SlInput.`type`:="password",
+      SlInput.placeholder := "Password",
+      SlInput.`type` := "password",
       value <-- passwordState,
       onSlInput.map(_.target.value) --> passwordState,
     ),
     p(usernameState),
     slButton(
       "Register",
-      onClick(usernameState).withLatest(passwordState).foreachEffect { case (username, password) => 
+      onClick(usernameState).withLatest(passwordState).foreachEffect { case (username, password) =>
         RpcClient.call.register(username = username, password = password)
       },
     ),
     slButton(
       "Login",
-      onClick(usernameState).withLatest(passwordState).foreachEffect { case (username, password) => 
+      onClick(usernameState).withLatest(passwordState).foreachEffect { case (username, password) =>
         authn.login(Credentials(username = username, password = password))
       },
     ),
@@ -118,26 +116,38 @@ def createPostForm = {
 
   div(
     slInput(
-      SlInput.placeholder:="What's on your mind?",
+      SlInput.placeholder := "What's on your mind?",
       value <-- contentState,
       onSlInput.map(_.target.value) --> contentState,
     ),
-    slButton("Post", onClick(contentState).foreachEffect { content => 
-      RpcClient.call.createPost(content = content)
-    }),
+    slButton(
+      "Post",
+      onClick(contentState).foreachEffect { content =>
+        RpcClient.call.createPost(content = content)
+      },
+    ),
   )
 }
 
-
 def postFeed = {
-
   div(
     lift {
-      unlift(RpcClient.call.getPosts()).map(post => 
-        div(post.content)
+      div(
+        unlift(RpcClient.call.getPosts()).map(post => postCard(post.content, post.authorId)),
+        display := "flex",
+        flexDirection := "column",
       )
-
     }
   )
 }
 
+def postCard(content: String, authorId: String) = {
+  slCard(
+    content,
+    div(authorId, slot := "header", color := "grey"),
+    color := "white",
+    background := "black",
+    width := "600px",
+    SlCard.borderRadius := "0px",
+  )
+}
