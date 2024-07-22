@@ -57,6 +57,7 @@ object frontend extends AppScalaJSModule with WebCodegenModule {
     ivy"com.github.cornerman::colibri::${versions.colibri}",
     ivy"com.github.cornerman::colibri-reactive::${versions.colibri}",
     ivy"com.github.cornerman::colibri-fs2::${versions.colibri}",
+    ivy"com.github.cornerman::colibri-router::${versions.colibri}",
     ivy"org.http4s::http4s-dom::0.2.11",
     ivy"com.github.cornerman::sloth-jsdom-client::${versions.sloth}",
     ivy"com.github.cornerman::keratin-authn-frontend::${versions.authn}",

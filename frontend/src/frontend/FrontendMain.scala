@@ -16,14 +16,39 @@ import webcodegen.shoelace.SlButton.{value as _, *}
 import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{value as _, *}
 import webcodegen.shoelace.SlInput
+import colibri.router.*
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
+enum Page {
+  case Index
+  case Post(id: Int)
+  case NotFound
+}
+
+def pageToPath(page: Page): Path = page match {
+  case Page.Index    => Root
+  case Page.Post(id) => Root / "post" / id.toString
+}
+
+def pathToPage(path: Path): Page = path match {
+  case Root               => Page.Index
+  case Root / "post" / id => Page.Post(id.toInt)
+  case _                  => Page.NotFound
+}
+
 object Main extends IOApp.Simple {
+
+  val page: Var[Page] = {
+    val pageSubject: Subject[Page] = Router.path
+      .imapSubject[Page](pageToPath)(pathToPage)
+    Var.createStateless[Page](RxWriter.observer(pageSubject), Rx.observableSync(pageSubject))
+  }
 
   def run = lift {
 
     val myComponent = div(
+      page.map(_.toString),
       "Hello World",
       // RpcClient.call.increment(6),
       authControl,
