@@ -91,6 +91,13 @@ object backend extends AppScalaModule with DbCodegenModule {
   def dbcodegenSetupTask = T.task { (db: Db) =>
     db.executeSqlFile(dbSchemaFile())
   }
+  def dbcodegenTypeMapping: (java.sql.SQLType, Option[String]) => Option[String] = (sqltype, tpe) =>
+    sqltype.getVendorTypeNumber.intValue() match {
+      // https://www.sqlite.org/datatype3.html
+      // sqlite ints can store 64bits
+      case java.sql.Types.INTEGER => Some("Long")
+      case _                      => tpe
+    }
 
   def moduleDeps = Seq(rpc.jvm)
   def ivyDeps = super.ivyDeps() ++ Agg(
