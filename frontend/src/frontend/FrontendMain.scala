@@ -53,8 +53,8 @@ object Main extends IOApp.Simple {
   def run = lift {
 
     def resolvePage(page: Page): VNode = page match {
-      case Page.Index => frontpage
-      case Page.Login => authControl
+      case Page.Index => frontPage
+      case Page.Login => loginPage
       case _     => div("page not found")
     }
 
@@ -64,8 +64,8 @@ object Main extends IOApp.Simple {
 
 }
 
-def frontpage = {
-  div(
+def frontPage = {
+  div( 
     slCard(
       createPostForm,
       SlCard.padding := "0px",
@@ -77,6 +77,10 @@ def frontpage = {
     width := "600px",
     margin := "0 auto",
   )
+}
+
+def loginPage = {
+  authControl(width := "600px", margin := "0 auto")
 }
 
 def authControl = {
@@ -116,7 +120,7 @@ def authControl = {
         authn.login(Credentials(username = username, password = password))
       },
     ),
-    b(authn.session),
+    // b(authn.session),
     slButton(
       "Logout",
       onClick.doEffect {
