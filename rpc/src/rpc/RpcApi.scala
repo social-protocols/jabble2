@@ -11,6 +11,4 @@ trait RpcApi {
   def getPosts(): IO[Vector[Post]]
 }
 
-
-case class Post(id: Int, parentId: Option[Int], authorId: String, content: String) derives ReadWriter
-
+case class Post(id: Long, parentId: Option[Long], authorId: String, content: String, createdAt: Long) derives ReadWriter
