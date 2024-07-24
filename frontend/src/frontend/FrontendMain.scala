@@ -24,17 +24,20 @@ import webcodegen.shoelace.SlCard
 
 enum Page {
   case Index
+  case Login
   case Post(id: Int)
   case NotFound
 }
 
 def pageToPath(page: Page): Path = page match {
   case Page.Index    => Root
+  case Page.Login    => Root / "login"
   case Page.Post(id) => Root / "post" / id.toString
 }
 
 def pathToPage(path: Path): Page = path match {
   case Root               => Page.Index
+  case Root / "login"     => Page.Login
   case Root / "post" / id => Page.Post(id.toInt)
   case _                  => Page.NotFound
 }
@@ -49,18 +52,31 @@ object Main extends IOApp.Simple {
 
   def run = lift {
 
-    val myComponent = div(
-      page.map(_.toString),
-      "Hello World",
-      authControl,
-      createPostForm,
-      postFeed,
-    )
+    def resolvePage(page: Page): VNode = page match {
+      case Page.Index => frontpage
+      case Page.Login => authControl
+      case _     => div("page not found")
+    }
 
     // render the component into the <div id="app"></div> in index.html
-    unlift(Outwatch.renderReplace[IO]("#app", myComponent, RenderConfig.showError))
+    unlift(Outwatch.renderReplace[IO]("#app", resolvePage(page.now()), RenderConfig.showError))
   }
 
+}
+
+def frontpage = {
+  div(
+    slCard(
+      createPostForm,
+      SlCard.padding := "0px",
+      marginBottom := "10px",
+    ),
+    postFeed,
+    display := "flex",
+    flexDirection := "column",
+    width := "600px",
+    margin := "0 auto",
+  )
 }
 
 def authControl = {
@@ -112,6 +128,13 @@ def authControl = {
 
 def createPostForm = {
 
+  val authn = AuthnClient[IO](
+    AuthnClientConfig(
+      hostUrl = "http://localhost:3000",
+      sessionStorage = SessionStorage.LocalStorage("session"),
+    )
+  )
+
   val contentState = Var("")
 
   div(
@@ -144,8 +167,8 @@ def postFeed = {
 def postCard(content: String, authorId: String) = {
   slCard(
     content,
-    div(authorId, slot := "header", color := "grey"),
-    color := "white",
+    div("authorId: ", authorId, slot := "header", color := "grey"),
+    color := "grey",
     background := "black",
     width := "600px",
     SlCard.borderRadius := "0px",
