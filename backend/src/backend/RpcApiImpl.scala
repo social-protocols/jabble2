@@ -72,11 +72,18 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-
   def createPost(content: String): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
         db.PostRepo.insert(db.Post.Creator(parentId = None, authorId = userId, content = content))
+      }
+    }
+  }
+
+  def createReply(parentId: Long, content: String): IO[Unit] = withUser { userId =>
+    IO {
+      magnum.connect(ds) {
+        db.PostRepo.insert(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content))
       }
     }
   }
@@ -88,6 +95,5 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
       }
     }
   }
-
 
 }

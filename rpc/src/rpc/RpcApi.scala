@@ -8,6 +8,7 @@ trait RpcApi {
   def increment(x: Int): IO[Int]
   def incrementAuthorized(x: Int): IO[Int]
   def createPost(content: String): IO[Unit]
+  def createReply(parentId: Long, content: String): IO[Unit]
   def getPosts(): IO[Vector[Post]]
 }
 

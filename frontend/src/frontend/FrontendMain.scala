@@ -52,24 +52,24 @@ object Main extends IOApp.Simple {
 
   def run = lift {
 
-    def resolvePage(page: Page): VNode = page match {
-      case Page.Index => frontPage
-      case Page.Login => loginPage
-      case _     => div("page not found")
-    }
+    def resolvePage: VNode = div(
+      page.map {
+        case Page.Index => frontPage
+        case Page.Login => loginPage
+        case _          => div("page not found")
+      }
+    )
 
     // render the component into the <div id="app"></div> in index.html
-    unlift(Outwatch.renderReplace[IO]("#app", resolvePage(page.now()), RenderConfig.showError))
+    unlift(Outwatch.renderReplace[IO]("#app", resolvePage, RenderConfig.showError))
   }
 
 }
 
 def frontPage = {
-  div( 
+  div(
     slCard(
       createPostForm,
-      SlCard.padding := "0px",
-      marginBottom := "10px",
     ),
     postFeed,
     display := "flex",
@@ -160,7 +160,7 @@ def postFeed = {
   div(
     lift {
       div(
-        unlift(RpcClient.call.getPosts()).map(post => postCard(post.content, post.authorId)),
+        unlift(RpcClient.call.getPosts()).map(post => postCard(post.id, post.content, post.authorId)),
         display := "flex",
         flexDirection := "column",
       )
@@ -168,10 +168,34 @@ def postFeed = {
   )
 }
 
-def postCard(content: String, authorId: String) = {
+def postCard(postId: Long, content: String, authorId: String) = {
+  val authn = AuthnClient[IO](
+    AuthnClientConfig(
+      hostUrl = "http://localhost:3000",
+      sessionStorage = SessionStorage.LocalStorage("session"),
+    )
+  )
+
+  val contentState = Var("")
+
   slCard(
     content,
     div("authorId: ", authorId, slot := "header", color := "grey"),
+    div(
+      slInput(
+        SlInput.placeholder := "Reply",
+        value <-- contentState,
+        onSlInput.value --> contentState,
+      ),
+      contentState,
+      slButton(
+        "Reply",
+        onClick(contentState).foreachEffect { content =>
+          RpcClient.call.createReply(parentId = postId, content = content)
+        },
+      ),
+      slot := "footer"
+    ),
     color := "grey",
     background := "black",
     width := "600px",
