@@ -64,6 +64,13 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     )
   }
 
+  def getUsername(): IO[String] = withUser { userId =>
+    lift {
+      val account = unlift(authnClient.account(userId))
+      account.username
+    }
+  }
+
   def increment(x: Int): IO[Int] = IO.pure(x + 1)
   def incrementAuthorized(x: Int): IO[Int] = withUser { user =>
     lift {

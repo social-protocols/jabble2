@@ -49,6 +49,13 @@ object Main extends IOApp.Simple {
   }
 }
 
+val authnClient = AuthnClient[IO](
+  AuthnClientConfig(
+    hostUrl = "http://localhost:3000",
+    sessionStorage = SessionStorage.LocalStorage("session"),
+  )
+)
+
 def app: VNode = {
   val page: Var[Page] = {
     val pageSubject: Subject[Page] = Router.path
@@ -60,6 +67,7 @@ def app: VNode = {
 
   div(
     slButton("Jabble", onClick.as(Page.Index) --> page),
+    RpcClient.call.getUsername(),
     slButton("Login", onClick.as(Page.Login) --> page),
     refreshTrigger.observable
       .prepend(())
@@ -138,13 +146,6 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
 
 def authControl = {
 
-  val authn = AuthnClient[IO](
-    AuthnClientConfig(
-      hostUrl = "http://localhost:3000",
-      sessionStorage = SessionStorage.LocalStorage("session"),
-    )
-  )
-
   val usernameState = Var("")
   val passwordState = Var("")
 
@@ -170,28 +171,20 @@ def authControl = {
     slButton(
       "Login",
       onClick(usernameState).withLatest(passwordState).foreachEffect { case (username, password) =>
-        authn.login(Credentials(username = username, password = password))
+        authnClient.login(Credentials(username = username, password = password))
       },
     ),
     // b(authn.session),
     slButton(
       "Logout",
       onClick.doEffect {
-        authn.logout
+        authnClient.logout
       },
     ),
   )
 }
 
 def createPostForm(refreshTrigger: VarEvent[Unit]) = {
-
-  val authn = AuthnClient[IO](
-    AuthnClientConfig(
-      hostUrl = "http://localhost:3000",
-      sessionStorage = SessionStorage.LocalStorage("session"),
-    )
-  )
-
   val contentState = Var("")
 
   div(
