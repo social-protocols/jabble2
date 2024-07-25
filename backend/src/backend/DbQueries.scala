@@ -16,7 +16,7 @@ def getRecursiveReplies(postId: Long)(using con: DbCon): Option[rpc.ReplyTree] =
   val post = db.PostRepo.findById(postId)
   post.map { post =>
     val replyIds = getReplyIds(postId)
-    val replies = replyIds.map(getRecursiveReplies).flatten
+    val replies  = replyIds.map(getRecursiveReplies).flatten
     rpc.ReplyTree(post.to[rpc.Post], replies)
   }
 }
