@@ -43,27 +43,28 @@ def pathToPage(path: Path): Page = path match {
 }
 
 object Main extends IOApp.Simple {
+  def run = lift {
+    // render the component into the <div id="app"></div> in index.html
+    unlift(Outwatch.renderReplace[IO]("#app", app, RenderConfig.showError))
+  }
+}
 
+
+def app: VNode = {
   val page: Var[Page] = {
     val pageSubject: Subject[Page] = Router.path
       .imapSubject[Page](pageToPath)(pathToPage)
     Var.createStateless[Page](RxWriter.observer(pageSubject), Rx.observableSync(pageSubject))
   }
-
-  def run = lift {
-
-    def resolvePage: VNode = div(
-      page.map {
-        case Page.Index => frontPage
-        case Page.Login => loginPage
-        case _          => div("page not found")
-      }
-    )
-
-    // render the component into the <div id="app"></div> in index.html
-    unlift(Outwatch.renderReplace[IO]("#app", resolvePage, RenderConfig.showError))
-  }
-
+  div(
+    slButton("Jabble", onClick.as(Page.Index) --> page),
+    slButton("Login", onClick.as(Page.Login) --> page),
+    page.map {
+      case Page.Index => frontPage
+      case Page.Login => loginPage
+      case _          => div("page not found")
+    }
+  )
 }
 
 def frontPage = {
