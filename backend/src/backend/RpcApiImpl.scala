@@ -12,7 +12,6 @@ import io.github.arainko.ducktape.*
 import javax.sql.DataSource
 import org.http4s.ember.client.EmberClientBuilder
 import cats.effect.unsafe.implicits.global // TODO
-import scala.util.control.NonFatal
 import scala.concurrent.duration.*
 
 import authn.backend.TokenVerifier

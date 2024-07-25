@@ -7,9 +7,7 @@ import outwatch.dsl.*
 import colibri.*
 import colibri.reactive.*
 import authn.frontend.*
-import org.scalajs.dom
 import scala.scalajs.js
-import scala.annotation.nowarn
 import cats.effect.unsafe.implicits.global
 import authn.frontend.authnJS.keratinAuthn.distTypesMod.Credentials
 import webcodegen.shoelace.SlButton.{value as _, *}
@@ -33,6 +31,7 @@ def pageToPath(page: Page): Path = page match {
   case Page.Index    => Root
   case Page.Login    => Root / "login"
   case Page.Post(id) => Root / "post" / id.toString
+  // TODO: case Page.NotFound =>
 }
 
 def pathToPage(path: Path): Page = path match {
@@ -177,7 +176,6 @@ def authControl = {
       value <-- passwordState,
       onSlInput.map(_.target.value) --> passwordState,
     ),
-    p(usernameState),
     slButton(
       "Register",
       onClick(usernameState).withLatest(passwordState).foreachEffect { case (username, password) =>
@@ -234,13 +232,6 @@ def postFeed(refreshTrigger: VarEvent[Unit]) = {
 }
 
 def postCard(postId: Long, content: String, authorId: String, refreshTrigger: VarEvent[Unit]) = {
-  val authn = AuthnClient[IO](
-    AuthnClientConfig(
-      hostUrl = "http://localhost:3000",
-      sessionStorage = SessionStorage.LocalStorage("session"),
-    )
-  )
-
   val contentState = Var("")
 
   slCard(
