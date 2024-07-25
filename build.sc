@@ -10,8 +10,6 @@ import mill.scalajslib._
 import mill.scalajslib.api._
 
 trait AppScalaModule extends ScalaModule {
-  val isCi = sys.env.get("CI").contains("true")
-
   def scalaVersion = "3.4.1"
   val versions = new {
     val authn    = "0.1.3"
@@ -24,6 +22,12 @@ trait AppScalaModule extends ScalaModule {
     ivy"com.github.rssh::dotty-cps-async::0.9.21",
     ivy"com.github.rssh::cps-async-connect-cats-effect::0.9.21",
   )
+
+  def forkArgs = Seq("-Xmx256m")
+}
+
+trait AppScalacOptions extends ScalaModule {
+  val isCi = sys.env.get("CI").contains("true")
 
   def scalacOptions = T {
     super.scalacOptions() ++ Seq(
@@ -41,19 +45,23 @@ trait AppScalaModule extends ScalaModule {
       "-Yimports:java.lang,scala,scala.Predef,scala.util.chaining,cps.syntax.monadless,cps.monads.catsEffect",
     ) ++ Option.when(isCi)("-Xfatal-warnings")
   }
-
-  def forkArgs = Seq("-Xmx256m")
 }
 
 trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
   def scalaJSVersion = "1.16.0"
+
+  def scalacOptions = T {
+    // vite serves source maps from the out-folder. Fix the relative path to the source files:
+    // TODO: for production builds, point sourcemap to github
+    super.scalacOptions() ++ Seq(s"-scalajs-mapSourceURI:${T.workspace.toIO.toURI}->../../../.")
+  }
 }
 
-object frontend extends AppScalaJSModule with WebCodegenModule {
+object frontend extends AppScalaJSModule with AppScalacOptions {
   def moduleKind       = ModuleKind.ESModule
   def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("frontend"))
 
-  def moduleDeps = Seq(rpc.js)
+  def moduleDeps = Seq(webcomponents, rpc.js)
   def ivyDeps = Agg(
     ivy"io.github.outwatch::outwatch::${versions.outwatch}",
     ivy"com.github.cornerman::colibri::${versions.colibri}",
@@ -65,41 +73,10 @@ object frontend extends AppScalaJSModule with WebCodegenModule {
     ivy"com.github.cornerman::keratin-authn-frontend::${versions.authn}",
     ivy"org.scala-js:scalajs-java-securerandom_sjs1_2.13:1.0.0",
   )
-
-  def scalacOptions = T {
-    // vite serves source maps from the out-folder. Fix the relative path to the source files:
-    // TODO: for production builds, point sourcemap to github
-    super.scalacOptions() ++ Seq(s"-scalajs-mapSourceURI:${T.workspace.toIO.toURI}->../../../.")
-  }
-
-  override def webcodegenCustomElements = Seq(
-    webcodegen
-      .CustomElements("shoelace", (os.pwd / "node_modules" / "@shoelace-style" / "shoelace" / "dist" / "custom-elements.json").toIO),
-    webcodegen.CustomElements("emojipicker", (os.pwd / "node_modules" / "emoji-picker-element" / "custom-elements.json").toIO),
-  )
-  override def webcodegenTemplates = Seq(
-    webcodegen.Template.Outwatch
-  )
 }
 
-object backend extends AppScalaModule with DbCodegenModule {
-  def dbTemplateFile = T.source(os.pwd / "schema.scala.ssp")
-  def dbSchemaFile   = T.source(os.pwd / "schema.sql")
-
-  def dbcodegenTemplateFiles = T { Seq(dbTemplateFile()) }
-  def dbcodegenJdbcUrl       = "jdbc:sqlite:file::memory:?cache=shared"
-  def dbcodegenSetupTask = T.task { (db: Db) =>
-    db.executeSqlFile(dbSchemaFile())
-  }
-  def dbcodegenTypeMapping: (java.sql.SQLType, Option[String]) => Option[String] = (sqltype, tpe) =>
-    sqltype.getVendorTypeNumber.intValue() match {
-      // https://www.sqlite.org/datatype3.html
-      // sqlite ints can store 64bits
-      case java.sql.Types.INTEGER => Some("Long")
-      case _                      => tpe
-    }
-
-  def moduleDeps = Seq(rpc.jvm)
+object backend extends AppScalaModule with AppScalacOptions {
+  def moduleDeps = Seq(dbschema, rpc.jvm)
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.xerial:sqlite-jdbc::3.46.0.0",
     ivy"com.augustnagro::magnum::1.2.0", // db access
@@ -117,7 +94,7 @@ object backend extends AppScalaModule with DbCodegenModule {
 }
 
 object rpc extends Module {
-  trait SharedModule extends AppScalaModule with PlatformScalaModule {
+  trait SharedModule extends AppScalaModule with AppScalacOptions with PlatformScalaModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.github.cornerman::sloth::${versions.sloth}", // rpc
       ivy"com.lihaoyi::upickle::3.3.1",                    // json and msgpack
@@ -125,4 +102,41 @@ object rpc extends Module {
   }
   object jvm extends SharedModule
   object js  extends SharedModule with AppScalaJSModule
+}
+
+object webcomponents extends AppScalaJSModule with WebCodegenModule {
+  override def webcodegenCustomElements = Seq(
+    webcodegen
+      .CustomElements("shoelace", (os.pwd / "node_modules" / "@shoelace-style" / "shoelace" / "dist" / "custom-elements.json").toIO),
+    webcodegen.CustomElements("emojipicker", (os.pwd / "node_modules" / "emoji-picker-element" / "custom-elements.json").toIO),
+  )
+  override def webcodegenTemplates = Seq(
+    webcodegen.Template.Outwatch
+  )
+  def ivyDeps = Agg(
+    ivy"io.github.outwatch::outwatch::${versions.outwatch}"
+  )
+
+}
+
+object dbschema extends AppScalaModule with DbCodegenModule {
+  def dbTemplateFile = T.source(os.pwd / "schema.scala.ssp")
+  def dbSchemaFile   = T.source(os.pwd / "schema.sql")
+
+  def dbcodegenTemplateFiles = T { Seq(dbTemplateFile()) }
+  def dbcodegenJdbcUrl       = "jdbc:sqlite:file::memory:?cache=shared"
+  def dbcodegenSetupTask = T.task { (db: Db) =>
+    db.executeSqlFile(dbSchemaFile())
+  }
+  def dbcodegenTypeMapping: (java.sql.SQLType, Option[String]) => Option[String] = (sqltype, tpe) =>
+    sqltype.getVendorTypeNumber.intValue() match {
+      // https://www.sqlite.org/datatype3.html
+      // sqlite ints can store 64bits
+      case java.sql.Types.INTEGER => Some("Long")
+      case _                      => tpe
+    }
+
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    ivy"com.augustnagro::magnum::1.2.0" // db access
+  )
 }
