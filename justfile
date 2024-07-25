@@ -20,3 +20,7 @@ docker-run:
 
 ci:
   (git ls-files && git ls-files --others --exclude-standard) | entr -cnr earthly +ci-test
+
+rpc-clean:
+  # workaround after changing rpc api trait
+  mill clean "{rpc,frontend,backend}"
