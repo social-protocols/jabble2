@@ -15,8 +15,6 @@ import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{value as _, *}
 import webcodegen.shoelace.SlInput
 import colibri.router.*
-import webcodegen.shoelace.SlCard.*
-import webcodegen.shoelace.SlCard
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
@@ -83,7 +81,7 @@ def app: VNode = {
 
 def frontPage(refreshTrigger: VarEvent[Unit]) = {
   div(
-    slCard(
+    div(
       createPostForm(refreshTrigger)
     ),
     postFeed(refreshTrigger),
@@ -155,7 +153,7 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
       onClick.doEffect {
         RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = -1)
       },
-    )
+    ),
   )
 }
 
@@ -216,6 +214,10 @@ def createPostForm(refreshTrigger: VarEvent[Unit]) = {
         }
       },
     ),
+    display := "flex",
+    width := "600px",
+    border := "1px solid lightgrey",
+    padding := "10px",
   )
 }
 
@@ -234,9 +236,9 @@ def postFeed(refreshTrigger: VarEvent[Unit]) = {
 def postCard(postId: Long, content: String, authorId: String, refreshTrigger: VarEvent[Unit]) = {
   val contentState = Var("")
 
-  slCard(
+  div(
+    div("by: ", authorId, color := "grey"),
     content,
-    div("authorId: ", authorId, slot := "header", color := "grey"),
     div(
       slInput(
         SlInput.placeholder := "Reply",
@@ -252,11 +254,11 @@ def postCard(postId: Long, content: String, authorId: String, refreshTrigger: Va
           }
         },
       ),
-      slot := "footer",
+      display := "flex",
+      width := "100%",
     ),
-    color := "grey",
-    background := "black",
     width := "600px",
-    SlCard.borderRadius := "0px",
+    border := "1px solid lightgrey",
+    padding := "10px",
   )
 }
