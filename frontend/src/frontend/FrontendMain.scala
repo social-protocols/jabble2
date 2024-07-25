@@ -63,9 +63,17 @@ def app: VNode = {
   val refreshTrigger = VarEvent[Unit]()
 
   div(
-    slButton("Jabble", onClick.as(Page.Index) --> page),
-    RpcClient.call.getUsername(),
-    slButton("Login", onClick.as(Page.Login) --> page),
+    div(
+      slButton("Jabble", onClick.as(Page.Index) --> page),
+      div(
+        div(RpcClient.call.getUsername(), marginRight := "10px"),
+        slButton("Login", onClick.as(Page.Login) --> page),
+        marginLeft := "auto",
+        display := "flex",
+        alignItems := "baseline",
+      ),
+      display := "flex",
+    ),
     refreshTrigger.observable
       .prepend(())
       .map(_ =>
@@ -76,6 +84,8 @@ def app: VNode = {
           case _             => div("page not found")
         },
       ),
+    width := "1200px",
+    margin := "0 auto",
   )
 }
 
