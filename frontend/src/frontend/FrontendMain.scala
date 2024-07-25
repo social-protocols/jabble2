@@ -145,6 +145,18 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
         }
       },
     ),
+    slButton(
+      "Upvote",
+      onClick.doEffect {
+        RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = 1)
+      },
+    ),
+    slButton(
+      "Downvote",
+      onClick.doEffect {
+        RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = -1)
+      },
+    )
   )
 }
 
