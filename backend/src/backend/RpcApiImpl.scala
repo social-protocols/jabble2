@@ -113,12 +113,14 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, parentId: Option[Long], direction: Long): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
-        db.VoteEventRepo.insert(db.VoteEvent.Creator(
-          userId = userId,
-          postId = postId,
-          vote = direction,
-          parentId = parentId,
-        ))
+        db.VoteEventRepo.insert(
+          db.VoteEvent.Creator(
+            userId = userId,
+            postId = postId,
+            vote = direction,
+            parentId = parentId,
+          )
+        )
       }
     }
   }
