@@ -97,7 +97,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def getPosts(): IO[Vector[rpc.Post]] = {
     IO {
       magnum.connect(ds) {
-        db.PostRepo.findAll.map(_.to[rpc.Post])
+        db.PostRepo.findAll.map(_.to[rpc.Post]).sortBy(-_.createdAt)
       }
     }
   }
