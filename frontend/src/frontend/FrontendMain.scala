@@ -55,23 +55,30 @@ def app: VNode = {
       .imapSubject[Page](pageToPath)(pathToPage)
     Var.createStateless[Page](RxWriter.observer(pageSubject), Rx.observableSync(pageSubject))
   }
+
+  val refreshTrigger = VarEvent[Unit]()
+
   div(
     slButton("Jabble", onClick.as(Page.Index) --> page),
     slButton("Login", onClick.as(Page.Login) --> page),
-    page.map {
-      case Page.Index => frontPage
-      case Page.Login => loginPage
-      case _          => div("page not found")
-    },
+    refreshTrigger.observable
+      .prepend(())
+      .map(_ =>
+        page.map {
+          case Page.Index => frontPage(refreshTrigger)
+          case Page.Login => loginPage
+          case _          => div("page not found")
+        },
+      ),
   )
 }
 
-def frontPage = {
+def frontPage(refreshTrigger: VarEvent[Unit]) = {
   div(
     slCard(
-      createPostForm
+      createPostForm(refreshTrigger)
     ),
-    postFeed,
+    postFeed(refreshTrigger),
     display := "flex",
     flexDirection := "column",
     width := "600px",
@@ -130,7 +137,7 @@ def authControl = {
   )
 }
 
-def createPostForm = {
+def createPostForm(refreshTrigger: VarEvent[Unit]) = {
 
   val authn = AuthnClient[IO](
     AuthnClientConfig(
@@ -150,17 +157,20 @@ def createPostForm = {
     slButton(
       "Post",
       onClick(contentState).foreachEffect { content =>
-        RpcClient.call.createPost(content = content)
+        lift {
+          unlift(RpcClient.call.createPost(content = content))
+          refreshTrigger.set(())
+        }
       },
     ),
   )
 }
 
-def postFeed = {
+def postFeed(refreshTrigger: VarEvent[Unit]) = {
   div(
     lift {
       div(
-        unlift(RpcClient.call.getPosts()).map(post => postCard(post.id, post.content, post.authorId)),
+        unlift(RpcClient.call.getPosts()).map(post => postCard(post.id, post.content, post.authorId, refreshTrigger)),
         display := "flex",
         flexDirection := "column",
       )
@@ -168,7 +178,7 @@ def postFeed = {
   )
 }
 
-def postCard(postId: Long, content: String, authorId: String) = {
+def postCard(postId: Long, content: String, authorId: String, refreshTrigger: VarEvent[Unit]) = {
   val authn = AuthnClient[IO](
     AuthnClientConfig(
       hostUrl = "http://localhost:3000",
@@ -191,7 +201,10 @@ def postCard(postId: Long, content: String, authorId: String) = {
       slButton(
         "Reply",
         onClick(contentState).foreachEffect { content =>
-          RpcClient.call.createReply(parentId = postId, content = content)
+          lift {
+            unlift(RpcClient.call.createReply(parentId = postId, content = content))
+            refreshTrigger.set(())
+          }
         },
       ),
       slot := "footer",
