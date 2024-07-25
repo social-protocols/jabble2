@@ -96,4 +96,11 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
+  def getReplyTree(rootPostId: Long): IO[Option[rpc.ReplyTree]] = {
+    IO {
+      magnum.transact(ds) {
+        getRecursiveReplies(rootPostId)
+      }
+    }
+  }
 }

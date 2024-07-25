@@ -64,10 +64,11 @@ def app: VNode = {
     refreshTrigger.observable
       .prepend(())
       .map(_ =>
-        page.map {
-          case Page.Index => frontPage(refreshTrigger)
-          case Page.Login => loginPage
-          case _          => div("page not found")
+        page.map[VMod] {
+          case Page.Index    => frontPage(refreshTrigger)
+          case Page.Login    => loginPage
+          case Page.Post(id) => postPage(id.toLong)
+          case _             => div("page not found")
         },
       ),
   )
@@ -88,6 +89,19 @@ def frontPage(refreshTrigger: VarEvent[Unit]) = {
 
 def loginPage = {
   authControl(width := "600px", margin := "0 auto")
+}
+
+def postPage(postId: Long) = {
+  val replyTree = RpcClient.call.getReplyTree(postId)
+  replyTree.map(_.map(postWithReplies))
+}
+
+
+def postWithReplies(replyTree: rpc.ReplyTree): VNode = {
+  div(
+    div(replyTree.post.content),
+    replyTree.replies.map(postWithReplies)
+  )
 }
 
 def authControl = {
