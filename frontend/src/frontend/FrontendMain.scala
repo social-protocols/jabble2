@@ -67,7 +67,7 @@ def app: VNode = {
         page.map[VMod] {
           case Page.Index    => frontPage(refreshTrigger)
           case Page.Login    => loginPage
-          case Page.Post(id) => postPage(id.toLong)
+          case Page.Post(id) => postPage(id.toLong, refreshTrigger)
           case _             => div("page not found")
         },
       ),
@@ -91,16 +91,48 @@ def loginPage = {
   authControl(width := "600px", margin := "0 auto")
 }
 
-def postPage(postId: Long) = {
+def postPage(postId: Long, refreshTrigger: VarEvent[Unit]) = {
   val replyTree = RpcClient.call.getReplyTree(postId)
-  replyTree.map(_.map(postWithReplies))
+  replyTree.map(_.map { tree => postWithReplies(tree, refreshTrigger) })
 }
 
-
-def postWithReplies(replyTree: rpc.ReplyTree): VNode = {
+def postWithReplies(replyTree: rpc.ReplyTree, refreshTrigger: VarEvent[Unit]): VNode = {
   div(
-    div(replyTree.post.content),
-    replyTree.replies.map(postWithReplies)
+    postDetails(replyTree.post, refreshTrigger),
+    replyTree.replies.map { tree => postWithReplies(tree, refreshTrigger) },
+    marginLeft := "50px",
+  )
+}
+
+def postDetails(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
+  div(
+    postInfoBar(post),
+    post.content,
+    postActionBar(post, refreshTrigger),
+  )
+}
+
+def postInfoBar(post: rpc.Post): VNode = {
+  div("created at: ", post.createdAt)
+}
+
+def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
+  val contentState = Var("")
+  div(
+    slInput(
+      SlInput.placeholder := "Reply",
+      value <-- contentState,
+      onSlInput.value --> contentState,
+    ),
+    slButton(
+      "Reply",
+      onClick(contentState).foreachEffect { content =>
+        lift {
+          unlift(RpcClient.call.createReply(parentId = post.id, content = content))
+          refreshTrigger.set(())
+        }
+      },
+    ),
   )
 }
 
@@ -211,7 +243,6 @@ def postCard(postId: Long, content: String, authorId: String, refreshTrigger: Va
         value <-- contentState,
         onSlInput.value --> contentState,
       ),
-      contentState,
       slButton(
         "Reply",
         onClick(contentState).foreachEffect { content =>

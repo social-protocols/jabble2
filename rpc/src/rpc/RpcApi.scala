@@ -16,5 +16,3 @@ trait RpcApi {
 case class Post(id: Long, parentId: Option[Long], authorId: String, content: String, createdAt: Long) derives ReadWriter
 
 case class ReplyTree(post: Post, replies: Vector[ReplyTree]) derives ReadWriter
-
-
