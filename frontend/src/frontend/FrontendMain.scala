@@ -49,7 +49,6 @@ object Main extends IOApp.Simple {
   }
 }
 
-
 def app: VNode = {
   val page: Var[Page] = {
     val pageSubject: Subject[Page] = Router.path
@@ -63,14 +62,14 @@ def app: VNode = {
       case Page.Index => frontPage
       case Page.Login => loginPage
       case _          => div("page not found")
-    }
+    },
   )
 }
 
 def frontPage = {
   div(
     slCard(
-      createPostForm,
+      createPostForm
     ),
     postFeed,
     display := "flex",
@@ -195,7 +194,7 @@ def postCard(postId: Long, content: String, authorId: String) = {
           RpcClient.call.createReply(parentId = postId, content = content)
         },
       ),
-      slot := "footer"
+      slot := "footer",
     ),
     color := "grey",
     background := "black",
