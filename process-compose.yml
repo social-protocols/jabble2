@@ -5,7 +5,7 @@ processes:
   npm:
     command: bun install --color=always
 
-  init:
+  build:
     # initial mill build, so that vite finds the js files referenced in main.js
     command: mill --jobs 0 --color true '{backend.compile,frontend.fastLinkJS}'
 
@@ -16,16 +16,27 @@ processes:
     depends_on:
       npm:
         condition: process_completed_successfully
-      init:
+      build:
         # vite should start, even if the initial build failed
         condition: process_completed
 
-  mill:
-    command: mill --jobs 0 --color true --watch '{backend.runBackground,frontend.fastLinkJS}'
+  front:
+    # frontend has separate mill watch process, because backend changes should not trigger page reloads
+    command: mill --jobs 0 --color true --watch frontend.fastLinkJS
     env:
       LOG_LEVEL:debug
     depends_on:
-      init:
+      build:
+        # watch should start, even if the initial build failed
+        condition: process_completed
+
+  back:
+    # backend has separate mill watch process, because frontend changes should not trigger backend restarts
+    command: mill --jobs 0 --color true --watch backend.runBackground
+    env:
+      LOG_LEVEL:debug
+    depends_on:
+      build:
         # watch should start, even if the initial build failed
         condition: process_completed
 
