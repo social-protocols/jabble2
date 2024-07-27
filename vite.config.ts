@@ -24,6 +24,11 @@ export default defineConfig({
       // to avoid CORS issues, proxy the requests to the backend
       '/RpcApi/': 'http://localhost:8081',
     },
+    watch: {
+      // changes in scala files should not reload browser.
+      // Only the compiled files should trigger reloads.
+      ignored: ['**/*.scala'],
+    },
   },
   build: {
     sourcemap: true
