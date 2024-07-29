@@ -107,8 +107,7 @@ object rpc extends Module {
 object webcomponents extends AppScalaJSModule with WebCodegenModule {
   override def webcodegenCustomElements = Seq(
     webcodegen
-      .CustomElements("shoelace", (os.pwd / "node_modules" / "@shoelace-style" / "shoelace" / "dist" / "custom-elements.json").toIO),
-    webcodegen.CustomElements("emojipicker", (os.pwd / "node_modules" / "emoji-picker-element" / "custom-elements.json").toIO),
+      .CustomElements("shoelace", (os.pwd / "node_modules" / "@shoelace-style" / "shoelace" / "dist" / "custom-elements.json").toIO)
   )
   override def webcodegenTemplates = Seq(
     webcodegen.Template.Outwatch

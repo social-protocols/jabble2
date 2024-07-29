@@ -11,7 +11,6 @@
   "dependencies": {
     "@shoelace-style/shoelace": "^2.15.1",
     "autoprefixer": "^10.4.19",
-    "emoji-picker-element": "^1.21.3",
     "keratin-authn": "^1.4.1",
     "postcss": "^8.4.40",
     "snabbdom": "github:outwatch/snabbdom#0.7.5",

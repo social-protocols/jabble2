@@ -26,8 +26,6 @@ build-mill:
   FROM +devbox
   WORKDIR /code
   COPY +build-node-modules/node_modules/@shoelace-style/shoelace/dist ./node_modules/@shoelace-style/shoelace/dist
-  COPY +build-node-modules/node_modules/emoji-picker-element/custom-elements.json ./node_modules/emoji-picker-element/custom-elements.json
-
   ENV CI=true
   COPY build.sc schema.sql schema.scala.ssp ./
   RUN devbox run -- mill -i __.compile # compile build setup
