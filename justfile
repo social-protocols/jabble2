@@ -11,6 +11,10 @@ db:
 gen-bsp:
     mill mill.bsp.BSP/install
 
+# creates a new migration by diffing existing migrations against schema.sql
+new-migration name:
+  scripts/new-db-migration-atlas "{{name}}"
+
 docker:
   earthly +build-docker
 

@@ -21,7 +21,7 @@ find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" -print0 | sort -z -n
 echo "Diff the final state after migration with schemacrawler"
 schemacrawler --server=sqlite --database=${target_db_path} --command=details --info-level=detailed | grep -v "^generated on" > ${target_db_path}.schema
 schemacrawler --server=sqlite --database=${reference_db_path} --command=details --info-level=detailed | grep -v "^generated on" > ${reference_db_path}.schema
-diff ${target_db_path}.schema ${reference_db_path}.schema && echo "All good. Schemas are the same!" || exitCode=$?
+diff ${target_db_path}.schema ${reference_db_path}.schema && echo "All good. Migrations produce the desired schema!" || exitCode=$?
 
 rm "${target_db_path}" "${reference_db_path}" "${target_db_path}.schema" "${reference_db_path}.schema"
 
