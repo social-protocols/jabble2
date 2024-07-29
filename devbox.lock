@@ -2,50 +2,50 @@
   "lockfile_version": "1",
   "packages": {
     "atlas@latest": {
-      "last_modified": "2024-05-29T10:04:41Z",
-      "resolved": "github:NixOS/nixpkgs/ac82a513e55582291805d6f09d35b6d8b60637a1#atlas",
+      "last_modified": "2024-07-20T09:11:00Z",
+      "resolved": "github:NixOS/nixpkgs/6e14bbce7bea6c4efd7adfa88a40dac750d80100#atlas",
       "source": "devbox-search",
-      "version": "0.23.0",
+      "version": "0.25.0",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/2bcz7jlgxf5dxb4gdj5qwsf3xd0bidvd-atlas-0.23.0",
+              "path": "/nix/store/alww86nc17n1w38bzi7aqc9mj8vndq6k-atlas-0.25.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/2bcz7jlgxf5dxb4gdj5qwsf3xd0bidvd-atlas-0.23.0"
+          "store_path": "/nix/store/alww86nc17n1w38bzi7aqc9mj8vndq6k-atlas-0.25.0"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/c87ik1rhpmp5mcldpxfc5c8nh39gm1j5-atlas-0.23.0",
+              "path": "/nix/store/yx1rm9qi2lyxkzkv8d3fjrx8lvlhmzk3-atlas-0.25.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/c87ik1rhpmp5mcldpxfc5c8nh39gm1j5-atlas-0.23.0"
+          "store_path": "/nix/store/yx1rm9qi2lyxkzkv8d3fjrx8lvlhmzk3-atlas-0.25.0"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/x9m61dsj289sjqpx7v83032h9jdm10an-atlas-0.23.0",
+              "path": "/nix/store/nfqq33r50vsbcy5yldr9wi5q7ja4li2g-atlas-0.25.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/x9m61dsj289sjqpx7v83032h9jdm10an-atlas-0.23.0"
+          "store_path": "/nix/store/nfqq33r50vsbcy5yldr9wi5q7ja4li2g-atlas-0.25.0"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/cxscql09flki4f4cs7aw3rnv0kxcf5nh-atlas-0.23.0",
+              "path": "/nix/store/dwg2czmjd1lskiqxak8nbwml9dv1dwcb-atlas-0.25.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/cxscql09flki4f4cs7aw3rnv0kxcf5nh-atlas-0.23.0"
+          "store_path": "/nix/store/dwg2czmjd1lskiqxak8nbwml9dv1dwcb-atlas-0.25.0"
         }
       }
     },
