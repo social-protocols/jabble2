@@ -13,7 +13,6 @@ permissions:
   contents: read
 
 env:
-  EARTHLY_VERSION: v0.8.12
   EARTHLY_TOKEN: ${{ secrets.EARTHLY_TOKEN }}
   EARTHLY_ORG: ${{ secrets.EARTHLY_ORG }}
   EARTHLY_SATELLITE: ${{ secrets.EARTHLY_SATELLITE }}
@@ -28,13 +27,19 @@ jobs:
     timeout-minutes: 60
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Expose EARTHLY_VERSION from devbox.lock
+      run: |
+        # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
+        EARTHLY_VERSION="$(jq -r ".packages[\"earthly@latest\"].version" devbox.lock)"
+        echo "EARTHLY_VERSION=$EARTHLY_VERSION" >> "$GITHUB_ENV"
+
     - name: Install earthly
       uses: earthly/actions-setup@v1
       with:
         version: ${{ env.EARTHLY_VERSION }}
-
-    - name: Checkout
-      uses: actions/checkout@v4
 
     - name: Test
       run: earthly --allow-privileged --no-output +ci-test
