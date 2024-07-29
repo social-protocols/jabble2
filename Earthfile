@@ -4,10 +4,16 @@ VERSION 0.8
 
 devbox:
   FROM jetpackio/devbox:latest
+  USER root:root
+
+  # cache nix-store
+  RUN mv /nix /nix_initial # backup devbox /nix folder
+  CACHE --chmod 0777 --persist /nix
+  # if folder from cache is empty, init with backup
+  RUN ([ "$(ls -A /nix)" ] || mv /nix_initial/* /nix/) && rm -r /nix_initial
 
   # Installing your devbox project
   WORKDIR /code
-  USER root:root
   RUN mkdir -p /code && chown ${DEVBOX_USER}:${DEVBOX_USER} /code
   USER ${DEVBOX_USER}:${DEVBOX_USER}
   COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} devbox.json devbox.json
