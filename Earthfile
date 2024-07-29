@@ -97,9 +97,19 @@ app-deploy:
      && /root/.fly/bin/flyctl deploy --image $IMAGE --build-arg COMMIT_SHA=$COMMIT_SHA
   END
 
+scalafmt:
+  FROM +devbox
+  WORKDIR /code
+  CACHE --chmod 0777 /home/devbox/.cache/coursier
+  COPY --dir .scalafmt.conf backend frontend rpc ./
+  RUN devbox run -- scalafmt --check
+
+lint:
+  BUILD +scalafmt
 
 ci-test:
   BUILD +test-migrations
+  BUILD +lint
   BUILD +build-mill
   BUILD +build-vite
 

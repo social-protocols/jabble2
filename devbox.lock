@@ -581,6 +581,54 @@
         }
       }
     },
+    "scalafmt@latest": {
+      "last_modified": "2024-07-07T07:43:47Z",
+      "resolved": "github:NixOS/nixpkgs/b60793b86201040d9dee019a05089a9150d08b5b#scalafmt",
+      "source": "devbox-search",
+      "version": "3.7.17",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/269q04v7n301bkwj1hlxachz1jzvw34g-scalafmt-3.7.17",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/269q04v7n301bkwj1hlxachz1jzvw34g-scalafmt-3.7.17"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/2zqhq2jlqgmi3zphdy7s9qipp5alb4sd-scalafmt-3.7.17",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/2zqhq2jlqgmi3zphdy7s9qipp5alb4sd-scalafmt-3.7.17"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/k26myn4cy4hc353j6pvj4p4m6gss2w9r-scalafmt-3.7.17",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/k26myn4cy4hc353j6pvj4p4m6gss2w9r-scalafmt-3.7.17"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5bq4j4diclfls5n86hhprrjq97ghc417-scalafmt-3.7.17",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5bq4j4diclfls5n86hhprrjq97ghc417-scalafmt-3.7.17"
+        }
+      }
+    },
     "schemacrawler@latest": {
       "last_modified": "2024-05-22T06:18:38Z",
       "resolved": "github:NixOS/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e#schemacrawler",
