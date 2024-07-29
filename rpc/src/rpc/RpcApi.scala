@@ -12,7 +12,7 @@ trait RpcApi {
   def createReply(parentId: Long, content: String): IO[Unit]
   def getPosts(): IO[Vector[Post]]
   def getReplyTree(rootPostId: Long): IO[Option[ReplyTree]]
-  def vote(postId: Long, parentId: Option[Long], direction: Long): IO[Unit]
+  def vote(postId: Long, parentId: Option[Long], direction: Direction): IO[Unit]
 }
 
 case class Post(id: Long, parentId: Option[Long], authorId: String, content: String, createdAt: Long) derives ReadWriter
@@ -32,6 +32,12 @@ case class Vote(
   userId: String,
   postId: Long,
   vote: Long,
-  lastVoteEventId: Long,
+  latestVoteEventId: Long,
   voteEventTime: Long,
 )
+
+enum Direction(val value: Int) derives ReadWriter {
+  case Up      extends Direction(1)
+  case Neutral extends Direction(0)
+  case Down    extends Direction(-1)
+}

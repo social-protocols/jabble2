@@ -20,3 +20,13 @@ def getRecursiveReplies(postId: Long)(using con: DbCon): Option[rpc.ReplyTree] =
     rpc.ReplyTree(post.to[rpc.Post], replies)
   }
 }
+
+def getCurrentVote(userId: String, postId: Long)(using con: DbCon): Option[rpc.Vote] = {
+  val vote = sql"""
+    select *
+    from vote
+    where user_id = ${userId}
+    and post_id = ${postId}
+  """.query[rpc.Vote].run()
+  return vote.map(_.to[rpc.Vote]).lastOption
+}

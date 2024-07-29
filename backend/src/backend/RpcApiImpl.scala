@@ -110,14 +110,18 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def vote(postId: Long, parentId: Option[Long], direction: Long): IO[Unit] = withUser { userId =>
+  def vote(postId: Long, parentId: Option[Long], direction: rpc.Direction): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
+        val newState = getCurrentVote(userId, postId) match {
+          case Some(vote) => if (direction.value.toLong == vote.vote) rpc.Direction.Neutral else direction
+          case None       => direction
+        }
         db.VoteEventRepo.insert(
           db.VoteEvent.Creator(
             userId = userId,
             postId = postId,
-            vote = direction,
+            vote = newState.value,
             parentId = parentId,
           )
         )
