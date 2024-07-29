@@ -158,10 +158,9 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
       button(
         "🗨 Reply",
         onClick.doAction {
-          showReplyForm.set(!showReplyForm.now())
+          showReplyForm.update(!_)
         },
       ),
-      // TODO: don't render empty div if showReplyForm is false
       showReplyForm.map { show =>
         if (show) {
           button(
@@ -172,12 +171,11 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
             },
           )
         } else {
-          div()
+          VMod.empty
         }
       },
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
     ),
-    // TODO: don't render empty div if showReplyForm is false
     showReplyForm.map { show =>
       if (show) {
         div(
@@ -197,7 +195,7 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
           ),
         )
       } else {
-        div()
+        VMod.empty
       }
     },
   )
