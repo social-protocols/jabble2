@@ -61,7 +61,7 @@ def app: VNode = {
 
   div(
     div(
-      slButton("Jabble", onClick.as(Page.Index) --> page),
+      button("Jabble ", span("alpha", cls := "text-gray-500"), onClick.as(Page.Index) --> page, cls := "font-bold"),
       div(
         div(RpcClient.call.getUsername(), marginRight := "10px"),
         slButton("Login", onClick.as(Page.Login) --> page),
