@@ -22,11 +22,30 @@ def postDetails(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
     postInfoBar(post),
     post.content,
     postActionBar(post, refreshTrigger),
+    cls := "mb-5",
   )
 }
 
+val effectSizeThresholds: Vector[Float] = Vector(0.1f, 0.3f, 0.5f, 0.7f, 0.9f)
+
+def convincingnessScale(effectSize: Float): String = {
+  val numberOfFlames = effectSizeThresholds.filter(e => if (effectSize < e) true else false).length
+  "🔥".repeat(numberOfFlames)
+}
+
 def postInfoBar(post: rpc.Post): VNode = {
-  div("created at: ", post.createdAt)
+  div(
+    span(
+      span(
+        "convincing: ",
+        cls := "opacity-50",
+      ),
+      convincingnessScale(0.4), // TODO: show the actual score
+      outwatch.dsl.title := "Convincingness Score. How much this post changed people's opinion on the target post.",
+    ),
+    div("created at: ", post.createdAt),
+    cls := "mb-1 flex w-full items-center gap-2 text-xs sm:items-baseline",
+  )
 }
 
 def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
@@ -36,6 +55,7 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
 
   div(
     div(
+      cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
       button(
         "⇧",
         onClick.doEffect {
@@ -68,7 +88,6 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
           VMod.empty
         }
       },
-      cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
     ),
     showReplyForm.map { show =>
       if (show) {
