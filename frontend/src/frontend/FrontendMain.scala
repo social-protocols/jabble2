@@ -29,7 +29,7 @@ def pageToPath(page: Page): Path = page match {
   case Page.Index    => Root
   case Page.Login    => Root / "login"
   case Page.Post(id) => Root / "post" / id.toString
-  // TODO: case Page.NotFound =>
+  case Page.NotFound => Root
 }
 
 def pathToPage(path: Path): Page = path match {
