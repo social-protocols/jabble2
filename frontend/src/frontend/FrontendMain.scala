@@ -137,33 +137,69 @@ def postInfoBar(post: rpc.Post): VNode = {
 
 def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
   val contentState = Var("")
+
+  val showReplyForm = Var(false)
+
   div(
-    slInput(
-      SlInput.placeholder := "Reply",
-      value <-- contentState,
-      onSlInput.value --> contentState,
-    ),
-    slButton(
-      "Reply",
-      onClick(contentState).foreachEffect { content =>
-        lift {
-          unlift(RpcClient.call.createReply(parentId = post.id, content = content))
-          refreshTrigger.set(())
+    div(
+      button(
+        "⇧",
+        onClick.doEffect {
+          RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Up)
+        },
+      ),
+      span("Vote"),
+      button(
+        "⇩",
+        onClick.doEffect {
+          RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Down)
+        },
+      ),
+      button(
+        "🗨 Reply",
+        onClick.doAction {
+          showReplyForm.set(!showReplyForm.now())
+        },
+      ),
+      // TODO: don't render empty div if showReplyForm is false
+      showReplyForm.map { show =>
+        if (show) {
+          button(
+            "✕",
+            cls := "ml-auto self-center pr-2",
+            onClick.doAction {
+              showReplyForm.set(false)
+            },
+          )
+        } else {
+          div()
         }
       },
+      cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
     ),
-    slButton(
-      "Upvote",
-      onClick.doEffect {
-        RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Up)
-      },
-    ),
-    slButton(
-      "Downvote",
-      onClick.doEffect {
-        RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Down)
-      },
-    ),
+    // TODO: don't render empty div if showReplyForm is false
+    showReplyForm.map { show =>
+      if (show) {
+        div(
+          slInput(
+            SlInput.placeholder := "Enter your reply",
+            value <-- contentState,
+            onSlInput.value --> contentState,
+          ),
+          slButton(
+            "Reply",
+            onClick(contentState).foreachEffect { content =>
+              lift {
+                unlift(RpcClient.call.createReply(parentId = post.id, content = content))
+                refreshTrigger.set(())
+              }
+            },
+          ),
+        )
+      } else {
+        div()
+      }
+    },
   )
 }
 
