@@ -15,9 +15,45 @@ trait RpcApi {
   def vote(postId: Long, parentId: Option[Long], direction: Direction): IO[Unit]
 }
 
-case class Post(id: Long, parentId: Option[Long], authorId: String, content: String, createdAt: Long) derives ReadWriter
+case class Post(
+  id: Long,
+  parentId: Option[Long],
+  authorId: String,
+  content: String,
+  createdAt: Long,
+  deletedAt: Option[Long],
+  isPrivate: Long, // TODO: convert to boolean when reading from database
+) derives ReadWriter
 
 case class ReplyTree(post: Post, replies: Vector[ReplyTree]) derives ReadWriter
+
+case class Effect(
+  postId: Long,
+  commentId: Option[Long],
+  p: Long,
+  pCount: Long,
+  pSize: Long,
+  q: Long,
+  qCount: Long,
+  qSize: Long,
+  r: Long,
+  weight: Long,
+)
+
+case class PostState(
+  criticalCommentId: Option[Long],
+  voteState: VoteState,
+  voteCount: Long,
+  p: Option[Long],
+  effectOnTargetPost: Option[Effect],
+  isDeleted: Boolean,
+)
+
+case class CommentTreeState(
+  targetPostId: Long,
+  criticalCommentIdToTargetId: Map[Long, Vector[Long]],
+  posts: Map[Long, PostState],
+)
 
 case class VoteEvent(
   voteEventId: Long,
@@ -41,3 +77,9 @@ enum Direction(val value: Int) derives ReadWriter {
   case Neutral extends Direction(0)
   case Down    extends Direction(-1)
 }
+
+case class VoteState(
+  postId: Long,
+  vote: Direction,
+  isInformed: Boolean, // TODO: (still necessary or is it outdated?)
+)

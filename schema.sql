@@ -1,6 +1,8 @@
 create table user_profile(
-  user_id text not null primary key,
-  user_name text not null
+  user_id text not null primary key
+  , user_name text not null
+  -- created_at integer not null default (unixepoch('subsec')*1000) -- TODO
+  -- is_admin integer not null default false -- TODO
 ) strict;
 
 create table post(
@@ -48,6 +50,7 @@ create table vote_event(
   , vote_event_time integer not null default (unixepoch('subsec')*1000)
   , parent_id integer
 ) strict;
+create index 'vote_event_user_id_post_id_idx' on vote_event(user_id, post_id);
 
 create table vote (
   user_id text references user_profile(user_id)
@@ -77,3 +80,95 @@ begin
     , latest_vote_event_id = new.vote_event_id
     , vote_event_time = new.vote_event_time;
 end;
+
+create table effect_event(
+  vote_event_id integer not null
+  , vote_event_time integer not null
+  , post_id integer not null
+  , comment_id integer not null
+  , p real not null
+  , p_count integer not null
+  , p_size integer not null
+  , q real not null
+  , q_count integer not null
+  , q_size integer not null
+  , r real not null
+  , weight real not null default 0
+  , primary key(vote_event_id, post_id, comment_id)
+) strict;
+
+create table effect(
+  vote_event_id integer not null
+  , vote_event_time integer not null
+  , post_id integer not null
+  , comment_id integer not null
+  , p real not null
+  , p_count integer not null
+  , p_size integer not null
+  , q real not null
+  , q_count integer not null
+  , q_size integer not null
+  , r real not null
+  , weight real not null default 0
+  , primary key(post_id, comment_id)
+) strict;
+
+create trigger after_insert_effect_event after insert on effect_event
+begin
+  insert or replace into effect
+  values (
+    new.vote_event_id
+    , new.vote_event_time
+    , new.post_id
+    , new.comment_id
+    , new.p
+    , new.p_count
+    , new.p_size
+    , new.q
+    , new.q_count
+    , new.q_size
+    , new.r
+    , new.weight
+  );
+end;
+
+create table score_event(
+  vote_event_id integer not null
+  , vote_event_time integer not null
+  , post_id integer not null
+  , o real not null
+  , o_count integer not null
+  , o_size integer not null
+  , p real not null
+  , score real not null
+  , primary key(vote_event_id, post_id)
+) strict;
+
+create table score(
+  vote_event_id integer not null
+  , vote_event_time integer not null
+  , post_id integer not null
+  , o real not null
+  , o_count integer not null
+  , o_size integer not null
+  , p real not null
+  , score real not null
+  , primary key(post_id)
+) strict;
+
+create trigger after_insert_on_score_event after insert on score_event
+begin
+  insert or replace into score
+  values(
+    new.vote_event_id
+    , new.vote_event_time
+    , new.post_id
+    , new.o
+    , new.o_count
+    , new.o_size
+    , new.p
+    , new.score
+  );
+end;
+
+
