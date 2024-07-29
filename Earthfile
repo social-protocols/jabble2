@@ -28,14 +28,13 @@ build-mill:
   COPY +build-node-modules/node_modules/@shoelace-style/shoelace/dist ./node_modules/@shoelace-style/shoelace/dist
   ENV CI=true
   COPY build.sc schema.sql schema.scala.ssp ./
-  RUN devbox run -- mill -i __.compile # compile build setup
+  RUN devbox run -- mill __.compile # compile build setup
   COPY --dir rpc ./
   RUN devbox run -- mill 'rpc.{js,jvm}.compile'
   COPY --dir backend ./
   RUN devbox run -- mill backend.assembly
   COPY --dir frontend ./
-  RUN devbox run -- mill frontend.fullLinkJS \
-   && ls -l out
+  RUN devbox run -- mill frontend.fullLinkJS
   SAVE ARTIFACT out/backend/assembly.dest/out.jar backend.jar
   SAVE ARTIFACT out/frontend/fullLinkJS.dest frontend
 
