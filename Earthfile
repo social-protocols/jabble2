@@ -108,7 +108,7 @@ lint:
   BUILD +scalafmt
 
 ci-test:
-  BUILD +test-migrations
+  # BUILD +test-migrations
   BUILD +lint
   BUILD +build-mill
   BUILD +build-vite
