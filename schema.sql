@@ -50,7 +50,7 @@ create table vote_event(
   , vote_event_time integer not null default (unixepoch('subsec')*1000)
   , parent_id integer
 ) strict;
-create index 'vote_event_user_id_post_id_idx' on vote_event(user_id, post_id);
+create index vote_event_user_id_post_id_idx on vote_event(user_id, post_id);
 
 create table vote (
   user_id text references user_profile(user_id)

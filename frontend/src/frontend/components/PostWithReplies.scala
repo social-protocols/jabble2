@@ -9,17 +9,18 @@ import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{value as _, *}
 import webcodegen.shoelace.SlInput
 
-def postWithReplies(replyTree: rpc.ReplyTree, refreshTrigger: VarEvent[Unit]): VNode = {
+def postWithReplies(replyTree: rpc.ReplyTree, commentTreeState: rpc.CommentTreeState, refreshTrigger: VarEvent[Unit]): VNode = {
+  val postState = commentTreeState.posts.get(replyTree.post.id)
   div(
-    postDetails(replyTree.post, refreshTrigger),
-    replyTree.replies.map { tree => postWithReplies(tree, refreshTrigger) },
+    postDetails(replyTree.post, postState, refreshTrigger),
+    replyTree.replies.map { tree => postWithReplies(tree, commentTreeState, refreshTrigger) },
     marginLeft := "50px",
   )
 }
 
-def postDetails(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
+def postDetails(post: rpc.Post, postState: Option[rpc.PostState], refreshTrigger: VarEvent[Unit]): VNode = {
   div(
-    postInfoBar(post),
+    postInfoBar(post, postState),
     post.content,
     postActionBar(post, refreshTrigger),
     cls := "mb-5",
@@ -33,7 +34,11 @@ def convincingnessScale(effectSize: Float): String = {
   "🔥".repeat(numberOfFlames)
 }
 
-def postInfoBar(post: rpc.Post): VNode = {
+def postInfoBar(post: rpc.Post, postState: Option[rpc.PostState]): VNode = {
+  val nVotes = postState match {
+    case Some(state) => state.voteCount.toString
+    case None        => "0"
+  }
   div(
     span(
       span(
@@ -43,6 +48,7 @@ def postInfoBar(post: rpc.Post): VNode = {
       convincingnessScale(0.4), // TODO: show the actual score
       outwatch.dsl.title := "Convincingness Score. How much this post changed people's opinion on the target post.",
     ),
+    div(nVotes, " votes"),
     div("created at: ", post.createdAt),
     cls := "mb-1 flex w-full items-center gap-2 text-xs sm:items-baseline",
   )
@@ -59,14 +65,20 @@ def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
       button(
         "⇧",
         onClick.doEffect {
-          RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Up)
+          lift {
+            unlift(RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Up))
+            refreshTrigger.set(())
+          }
         },
       ),
       span("Vote"),
       button(
         "⇩",
         onClick.doEffect {
-          RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Down)
+          lift {
+            unlift(RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Down))
+            refreshTrigger.set(())
+          }
         },
       ),
       button(

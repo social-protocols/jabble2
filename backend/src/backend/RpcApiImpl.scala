@@ -113,10 +113,8 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, parentId: Option[Long], direction: rpc.Direction): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
-        val newState = getCurrentVote(userId, postId) match {
-          case Some(vote) => if (direction.value.toLong == vote.vote) rpc.Direction.Neutral else direction
-          case None       => direction
-        }
+        val currentVote = getUserVoteState(userId, postId)
+        val newState    = if (direction == currentVote.vote) rpc.Direction.Neutral else direction
         db.VoteEventRepo.insert(
           db.VoteEvent.Creator(
             userId = userId,
@@ -124,6 +122,25 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
             vote = newState.value,
             parentId = parentId,
           )
+        )
+      }
+    }
+  }
+
+  def getCommentTreeState(targetPostId: Long): IO[rpc.CommentTreeState] = withUser { userId =>
+    IO {
+      magnum.transact(ds) {
+        rpc.CommentTreeState(
+          targetPostId,
+          getAllSubtreePosts(targetPostId).map { post =>
+            post.id -> rpc.PostState(
+              getUserVoteState(userId, post.id),
+              getVoteCount(post.id),
+              None, // TODO: actual informed probability
+              None, // TODO: actual effectOnTargetPost
+              post.deletedAt.isDefined,
+            )
+          }.toMap,
         )
       }
     }
