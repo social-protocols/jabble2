@@ -13,6 +13,7 @@ trait RpcApi {
   def getPosts(): IO[Vector[Post]]
   def getReplyTree(rootPostId: Long): IO[Option[ReplyTree]]
   def vote(postId: Long, parentId: Option[Long], direction: Direction): IO[Unit]
+  def getCommentTreeState(targetPostId: Long): IO[CommentTreeState]
 }
 
 case class Post(
@@ -38,22 +39,20 @@ case class Effect(
   qSize: Long,
   r: Long,
   weight: Long,
-)
+) derives ReadWriter
 
 case class PostState(
-  criticalCommentId: Option[Long],
   voteState: VoteState,
   voteCount: Long,
   p: Option[Long],
   effectOnTargetPost: Option[Effect],
   isDeleted: Boolean,
-)
+) derives ReadWriter
 
 case class CommentTreeState(
   targetPostId: Long,
-  criticalCommentIdToTargetId: Map[Long, Vector[Long]],
   posts: Map[Long, PostState],
-)
+) derives ReadWriter
 
 case class VoteEvent(
   voteEventId: Long,
@@ -81,5 +80,4 @@ enum Direction(val value: Int) derives ReadWriter {
 case class VoteState(
   postId: Long,
   vote: Direction,
-  isInformed: Boolean, // TODO: (still necessary or is it outdated?)
-)
+) derives ReadWriter

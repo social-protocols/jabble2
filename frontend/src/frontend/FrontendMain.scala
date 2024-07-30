@@ -104,9 +104,14 @@ def loginPage = {
 }
 
 def postPage(postId: Long, refreshTrigger: VarEvent[Unit]) = {
-  val replyTree = RpcClient.call.getReplyTree(postId)
+  val replyTree        = RpcClient.call.getReplyTree(postId)
+  val commentTreeState = RpcClient.call.getCommentTreeState(postId)
   div(
-    replyTree.map(_.map { tree => postWithReplies(tree, refreshTrigger) }),
+    replyTree.map(_.map { tree =>
+      commentTreeState.map { treeState =>
+        postWithReplies(tree, treeState, refreshTrigger)
+      }
+    }),
     maxWidth := "960px",
     margin := "0 auto",
   )
