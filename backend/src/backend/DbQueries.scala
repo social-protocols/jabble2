@@ -4,6 +4,20 @@ import com.augustnagro.magnum
 import com.augustnagro.magnum.*
 import io.github.arainko.ducktape.*
 
+given DbCodec[rpc.Direction] = DbCodec[Long].biMap(
+  {
+    case 1     => rpc.Direction.Up
+    case 0     => rpc.Direction.Neutral
+    case -1    => rpc.Direction.Down
+    case other => throw Exception(s"Not a valid Direction encoding: $other")
+  },
+  {
+    case rpc.Direction.Up      => 1
+    case rpc.Direction.Neutral => 0
+    case rpc.Direction.Down    => -1
+  },
+)
+
 def getReplyIds(postId: Long)(using con: DbCon): Vector[Long] = {
   sql"""
     select id
@@ -27,42 +41,25 @@ def getSubtreePostIds(subrootPostId: Long)(using con: DbCon): Vector[Long] = {
     from lineage
     where ancestor_id = ${subrootPostId}
   """.query[Long].run()
-  println(descendantIds)
   Vector(subrootPostId).concat(descendantIds)
 }
 
 def getAllSubtreePosts(subrootPostId: Long)(using con: DbCon): Vector[rpc.Post] = {
-  val subtreePostIds = getSubtreePostIds(subrootPostId)
-  subtreePostIds.map { id =>
-    val post = db.PostRepo.findById(id).map { _.to[rpc.Post] }
-    post match {
-      case Some(post) => post
-      case None       => null
-    }
+  val subtreePostIds: Vector[Long] = getSubtreePostIds(subrootPostId)
+  subtreePostIds.flatMap { id =>
+    db.PostRepo.findById(id).map { _.to[rpc.Post] }
   }
-    .filter(_ != null)
 }
 
 def getUserVoteState(userId: String, postId: Long)(using con: DbCon): rpc.VoteState = {
-  // TODO: proper translation from db post to rpc post with magnum
-
-  val vote = sql"""
+  val direction = sql"""
     select vote
     from vote
     where user_id = ${userId}
     and post_id = ${postId}
-  """.query[Long].run().lastOption
+  """.query[rpc.Direction].run().headOption
 
-  val direction = vote match {
-    case None => rpc.Direction.Neutral
-    case Some(vote) =>
-      vote match {
-        case 1  => rpc.Direction.Up
-        case -1 => rpc.Direction.Down
-        case _  => rpc.Direction.Neutral
-      }
-  }
-  rpc.VoteState(postId, direction)
+  rpc.VoteState(postId, direction.getOrElse(rpc.Direction.Neutral))
 }
 
 def getVoteCount(postId: Long)(using con: DbCon): Long = {
@@ -71,5 +68,5 @@ def getVoteCount(postId: Long)(using con: DbCon): Long = {
     from vote
     where post_id = ${postId}
     and vote != 0
-  """.query[Long].run().last
+  """.query[Long].run().head
 }

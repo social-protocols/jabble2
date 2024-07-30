@@ -35,10 +35,7 @@ def convincingnessScale(effectSize: Float): String = {
 }
 
 def postInfoBar(post: rpc.Post, postState: Option[rpc.PostState]): VNode = {
-  val nVotes = postState match {
-    case Some(state) => state.voteCount.toString
-    case None        => "0"
-  }
+  val nVotes = postState.fold(0L)(_.voteCount)
   div(
     span(
       span(
