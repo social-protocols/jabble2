@@ -4,9 +4,9 @@ import colibri.reactive.*
 import outwatch.*
 import outwatch.dsl.*
 import frontend.RpcClient
-import webcodegen.shoelace.SlButton.{value as _, *}
+import webcodegen.shoelace.SlButton.{title as _, value as _, *}
 import webcodegen.shoelace.SlButton
-import webcodegen.shoelace.SlInput.{value as _, *}
+import webcodegen.shoelace.SlInput.{title as _, value as _, *}
 import webcodegen.shoelace.SlInput
 
 def postWithReplies(replyTree: rpc.ReplyTree, commentTreeState: rpc.CommentTreeState, refreshTrigger: VarEvent[Unit]): VNode = {
@@ -43,7 +43,7 @@ def postInfoBar(post: rpc.Post, postState: Option[rpc.PostState]): VNode = {
         cls := "opacity-50",
       ),
       convincingnessScale(0.4), // TODO: show the actual score
-      outwatch.dsl.title := "Convincingness Score. How much this post changed people's opinion on the target post.",
+      title := "Convincingness Score. How much this post changed people's opinion on the target post.",
     ),
     div(nVotes, " votes"),
     div("created at: ", post.createdAt),

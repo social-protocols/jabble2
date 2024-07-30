@@ -42,7 +42,8 @@ case class Effect(
 ) derives ReadWriter
 
 case class PostState(
-  voteState: VoteState,
+  postId: Long,
+  voteState: Direction,
   voteCount: Long,
   p: Option[Long],
   effectOnTargetPost: Option[Effect],

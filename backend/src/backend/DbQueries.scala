@@ -30,7 +30,7 @@ def getRecursiveReplies(postId: Long)(using con: DbCon): Option[rpc.ReplyTree] =
   val post = db.PostRepo.findById(postId)
   post.map { post =>
     val replyIds = getReplyIds(postId)
-    val replies  = replyIds.map(getRecursiveReplies).flatten
+    val replies  = replyIds.flatMap(getRecursiveReplies)
     rpc.ReplyTree(post.to[rpc.Post], replies)
   }
 }
@@ -51,7 +51,7 @@ def getAllSubtreePosts(subrootPostId: Long)(using con: DbCon): Vector[rpc.Post] 
   }
 }
 
-def getUserVoteState(userId: String, postId: Long)(using con: DbCon): rpc.VoteState = {
+def getUserVoteState(userId: String, postId: Long)(using con: DbCon): rpc.Direction = {
   val direction = sql"""
     select vote
     from vote
@@ -59,7 +59,7 @@ def getUserVoteState(userId: String, postId: Long)(using con: DbCon): rpc.VoteSt
     and post_id = ${postId}
   """.query[rpc.Direction].run().headOption
 
-  rpc.VoteState(postId, direction.getOrElse(rpc.Direction.Neutral))
+  direction.getOrElse(rpc.Direction.Neutral)
 }
 
 def getVoteCount(postId: Long)(using con: DbCon): Long = {
