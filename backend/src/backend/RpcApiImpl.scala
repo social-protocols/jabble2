@@ -25,27 +25,34 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 private val threadPool                     = Executors.newFixedThreadPool(2)
 private val dbec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
 
+val httpClient = EmberClientBuilder.default[IO].withTimeout(44.seconds).build.allocated.map(_._1).unsafeRunSync() // TODO not forever
+val authnClient = AuthnClient[IO](
+  AuthnClientConfig(
+    issuer = "http://localhost:3000",
+    audiences = Set("localhost"),
+    username = "admin",
+    password = "adminpw",
+    adminURL = Some("http://localhost:3001"),
+  ),
+  httpClient = httpClient,
+)
 class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
 
   // Authn integration
   val headers: Option[Authorization] = request.headers.get[Authorization]
   val token: Option[String]          = headers.collect { case Authorization(Credentials.Token(AuthScheme.Bearer, token)) => token }
-  val httpClient                     = EmberClientBuilder.default[IO].withTimeout(44.seconds).build.allocated.map(_._1).unsafeRunSync() // TODO not forever
-  val authnClient = AuthnClient[IO](
-    AuthnClientConfig(
-      issuer = "http://localhost:3000",
-      audiences = Set("localhost"),
-      username = "admin",
-      password = "adminpw",
-      adminURL = Some("http://localhost:3001"),
-    ),
-    httpClient = httpClient,
-  )
-  val verifier                          = TokenVerifier[IO]("http://localhost:3000", Set("localhost"))
-  def userAccountId: IO[Option[String]] = token.traverse(token => verifier.verify(token).map(_.accountId))
-  def withUser[T](code: String => IO[T]): IO[T] = userAccountId.flatMap {
-    case Some(accountId) => code(accountId)
-    case None            => IO.raiseError(Exception("403 Unauthorized"))
+  val verifier                       = TokenVerifier[IO]("http://localhost:3000", Set("localhost"))
+  def withUser[T](code: String => IO[T]): IO[T] = lift {
+    token match {
+      case Some(token) =>
+        try {
+          val account = unlift(verifier.verify(token))
+          unlift(code(account.accountId))
+        } catch { error =>
+          println(error.getMessage()); throw Exception("403 Unauthorized")
+        }
+      case None => throw Exception("403 Unauthorized")
+    }
   }
 
   def register(username: String, password: String): IO[Unit] = lift {
@@ -63,10 +70,12 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     )
   }
 
-  def getUsername(): IO[String] = withUser { userId =>
+  def getUsername(): IO[Option[String]] = withUser { userId =>
     lift {
-      val account = unlift(authnClient.account(userId))
-      account.username
+      try {
+        val account = unlift(authnClient.account(userId))
+        Some(account.username)
+      } catch { _ => None }
     }
   }
 
