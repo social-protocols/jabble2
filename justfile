@@ -25,3 +25,5 @@ docker-run:
 ci:
   (git ls-files && git ls-files --others --exclude-standard) | entr -cnr earthly +ci-test
 
+format:
+  scalafmt backend frontend rpc
