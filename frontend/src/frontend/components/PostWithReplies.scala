@@ -13,8 +13,10 @@ def postWithReplies(replyTree: rpc.ReplyTree, commentTreeState: rpc.CommentTreeS
   val postState = commentTreeState.posts.get(replyTree.post.id)
   div(
     postDetails(replyTree.post, postState, refreshTrigger),
-    replyTree.replies.map { tree => postWithReplies(tree, commentTreeState, refreshTrigger) },
-    marginLeft := "50px",
+    div(
+      replyTree.replies.map { tree => postWithReplies(tree, commentTreeState, refreshTrigger) },
+      cls := "ml-2 pl-3",
+    ),
   )
 }
 
@@ -23,31 +25,43 @@ def postDetails(post: rpc.Post, postState: Option[rpc.PostState], refreshTrigger
     postInfoBar(post, postState),
     post.content,
     postActionBar(post, refreshTrigger),
-    cls := "mb-5",
+    cls := "mb-4",
   )
 }
 
 val effectSizeThresholds: Vector[Float] = Vector(0.1f, 0.3f, 0.5f, 0.7f, 0.9f)
 
 def convincingnessScale(effectSize: Float): String = {
-  val numberOfFlames = effectSizeThresholds.filter(e => if (effectSize < e) true else false).length
+  val numberOfFlames = effectSizeThresholds.filter(e => if (effectSize >= e) true else false).length
   "🔥".repeat(numberOfFlames)
 }
 
 def postInfoBar(post: rpc.Post, postState: Option[rpc.PostState]): VNode = {
-  val nVotes = postState.fold(0L)(_.voteCount)
+  val nVotes     = postState.fold(0L)(_.voteCount)
+  val effectSize = 0.4f // TODO: show the actual score (will be in postState.effectSize and can be inlined)
+
+  // TODO: entire postInfoBar should be a link to stats page
   div(
-    span(
-      span(
-        "convincing: ",
-        cls := "opacity-50",
-      ),
-      convincingnessScale(0.4), // TODO: show the actual score
-      title := "Convincingness Score. How much this post changed people's opinion on the target post.",
-    ),
-    div(nVotes, " votes"),
-    div("created at: ", post.createdAt),
     cls := "mb-1 flex w-full items-center gap-2 text-xs sm:items-baseline",
+    if (effectSize > effectSizeThresholds(0)) {
+      span(
+        title := "Convincingness Score. How much this post changed people's opinion on the target post.",
+        span(cls := "opacity-50", "convincing: "),
+        convincingnessScale(effectSize),
+      )
+    } else {
+      VMod.empty
+    },
+    span(
+      cls := "opacity-50",
+      nVotes,
+      if (nVotes == 1) " vote" else " votes",
+    ),
+    span(
+      cls := "opacity-50",
+      "created at: ",
+      post.createdAt,
+    ), // TODO: display with moment.js (build facade)
   )
 }
 
