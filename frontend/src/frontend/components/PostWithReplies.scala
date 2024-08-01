@@ -14,7 +14,7 @@ import cats.effect.IO
 def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
   val postData = treeContext.postTreeData.posts(postTree.post.id)
   div(
-    postDetails(postTree.post, postData, refreshTrigger),
+    postDetails(postTree.post, postData, treeContext, refreshTrigger),
     div(
       postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger) },
       cls := "ml-2 pl-3",
@@ -22,11 +22,11 @@ def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTri
   )
 }
 
-def postDetails(post: rpc.Post, postData: rpc.PostData, refreshTrigger: VarEvent[Unit]): VNode = {
+def postDetails(post: rpc.Post, postData: rpc.PostData, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
   div(
     postInfoBar(post, postData),
     post.content,
-    postActionBar(post, refreshTrigger),
+    postActionBar(post, treeContext, refreshTrigger),
     cls := "mb-4",
   )
 }
@@ -71,32 +71,27 @@ def postInfoBar(post: rpc.Post, postData: rpc.PostData): VNode = {
   )
 }
 
-def postActionBar(post: rpc.Post, refreshTrigger: VarEvent[Unit]): VNode = {
+def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
   val contentState = Var("")
 
   val showReplyForm = Var(false)
+
+  def submitVote(direction: rpc.Direction) = lift {
+    val newPostTreeData = unlift(RpcClient.call.vote(post.id, treeContext.targetPostId, direction))
+    treeContext.setPostTreeDataState(newPostTreeData)
+  }
 
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
       button(
         "⇧",
-        onClick.doEffect {
-          lift {
-            unlift(RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Up))
-            refreshTrigger.set(())
-          }
-        },
+        onClick.doEffect { submitVote(rpc.Direction.Up) },
       ),
       span("Vote"),
       button(
         "⇩",
-        onClick.doEffect {
-          lift {
-            unlift(RpcClient.call.vote(postId = post.id, parentId = post.parentId, direction = rpc.Direction.Down))
-            refreshTrigger.set(())
-          }
-        },
+        onClick.doEffect { submitVote(rpc.Direction.Down) },
       ),
       button(
         "🗨 Reply",

@@ -86,10 +86,15 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def createReply(parentId: Long, content: String): IO[Unit] = withUser { userId =>
+  def createReply(parentId: Long, targetPostId: Long, content: String): IO[(rpc.PostTree, rpc.PostTreeData)] = withUser { userId =>
     IO {
       magnum.connect(ds) {
-        db.PostRepo.insert(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content))
+        val newPost: rpc.Post =
+          db.PostRepo.insertReturning(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content)).to[rpc.Post]
+        (
+          rpc.PostTree(newPost, Vector.empty),
+          getDbPostTreeData(targetPostId, userId),
+        )
       }
     }
   }
@@ -110,11 +115,12 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def vote(postId: Long, parentId: Option[Long], direction: rpc.Direction): IO[Unit] = withUser { userId =>
+  def vote(postId: Long, targetPostId: Long, direction: rpc.Direction): IO[rpc.PostTreeData] = withUser { userId =>
     IO {
-      magnum.connect(ds) {
+      magnum.transact(ds) {
         val currentVote = getVote(userId, postId)
         val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
+        val parentId    = db.PostRepo.findById(postId).flatMap(_.parentId)
         db.VoteEventRepo.insert(
           db.VoteEvent.Creator(
             userId = userId,
@@ -123,27 +129,12 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
             parentId = parentId,
           )
         )
+        getDbPostTreeData(targetPostId, userId)
       }
     }
   }
 
   def getPostTreeData(targetPostId: Long): IO[rpc.PostTreeData] = withUser { userId =>
-    IO {
-      magnum.transact(ds) {
-        rpc.PostTreeData(
-          targetPostId,
-          getAllSubtreePosts(targetPostId).map { post =>
-            post.id -> rpc.PostData(
-              post.id,
-              getVote(userId, post.id),
-              getVoteCount(post.id),
-              None, // TODO: actual informed probability
-              None, // TODO: actual effectOnTargetPost
-              post.deletedAt.isDefined,
-            )
-          }.toMap,
-        )
-      }
-    }
+    IO { magnum.transact(ds) { getDbPostTreeData(targetPostId, userId) } }
   }
 }

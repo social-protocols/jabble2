@@ -111,30 +111,38 @@ def loginPage = {
 }
 
 case class TreeContext(
+  targetPostId: Long,
   postTree: rpc.PostTree,
   postTreeData: rpc.PostTreeData,
   setPostTreeDataState: (postTreeData: rpc.PostTreeData) => Unit,
 )
 
-def postPage(postId: Long, refreshTrigger: VarEvent[Unit]) = lift {
-  val postTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
+def postPage(postId: Long, refreshTrigger: VarEvent[Unit]): VMod = lift {
+  val initialPostTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
+  val initialPostTreeData                   = unlift(RpcClient.call.getPostTreeData(postId))
 
-  postTree match {
-    case Some(initialTree) =>
-      // val postTreeState = Var(initialTree)
-
-      val treeContext: TreeContext = TreeContext(
-        initialTree,
-        unlift(RpcClient.call.getPostTreeData(postId)),
-        (postTreeData: rpc.PostTreeData) => (),
-      )
-
-      div(
-        postWithReplies(initialTree, treeContext, refreshTrigger),
-        maxWidth := "960px",
-        margin := "0 auto",
-      )
-    case None => div(s"Post with id ${postId} not found")
+  initialPostTree match {
+    case Some(tree) => renderPostPage(tree, initialPostTreeData, refreshTrigger)
+    case None       => div(s"Post with id ${postId} not found")
   }
+}
 
+def renderPostPage(initialPostTree: rpc.PostTree, initialPostTreeData: rpc.PostTreeData, refreshTrigger: VarEvent[Unit]): VMod = {
+  val postTreeState     = Var(initialPostTree)
+  val postTreeDataState = Var(initialPostTreeData)
+
+  Rx {
+    val treeContext: TreeContext = TreeContext(
+      initialPostTreeData.targetPostId,
+      postTreeState(),
+      postTreeDataState(),
+      postTreeDataState.set,
+    )
+
+    div(
+      postWithReplies(initialPostTree, treeContext, refreshTrigger),
+      maxWidth := "960px",
+      margin := "0 auto",
+    )
+  }
 }

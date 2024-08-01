@@ -10,10 +10,10 @@ trait RpcApi {
   def increment(x: Int): IO[Int]
   def incrementAuthorized(x: Int): IO[Int]
   def createPost(content: String): IO[Unit]
-  def createReply(parentId: Long, content: String): IO[Unit]
+  def createReply(parentId: Long, targetPostId: Long, content: String): IO[(PostTree, PostTreeData)]
   def getPosts(): IO[Vector[Post]]
   def getPostTree(rootPostId: Long): IO[Option[PostTree]]
-  def vote(postId: Long, parentId: Option[Long], direction: Direction): IO[Unit]
+  def vote(postId: Long, targetPostId: Long, direction: Direction): IO[PostTreeData]
   def getPostTreeData(targetPostId: Long): IO[PostTreeData]
 }
 
@@ -27,7 +27,14 @@ case class Post(
   isPrivate: Long, // TODO: convert to boolean when reading from database
 ) derives ReadWriter
 
-case class PostTree(post: Post, replies: Vector[PostTree]) derives ReadWriter
+case class PostTree(post: Post, replies: Vector[PostTree]) derives ReadWriter:
+  def insert(comment: PostTree): PostTree = {
+    if (comment.post.parentId.exists(_ == post.id)) {
+      copy(replies = comment +: replies)
+    } else {
+      copy(replies = replies.map(_.insert(comment)))
+    }
+  }
 
 case class Effect(
   postId: Long,

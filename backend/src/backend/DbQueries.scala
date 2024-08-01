@@ -70,3 +70,19 @@ def getVoteCount(postId: Long)(using con: DbCon): Long = {
     and vote != 0
   """.query[Long].run().head
 }
+
+def getDbPostTreeData(targetPostId: Long, userId: String)(using con: DbCon): rpc.PostTreeData = {
+  rpc.PostTreeData(
+    targetPostId,
+    getAllSubtreePosts(targetPostId).view.map { post =>
+      post.id -> rpc.PostData(
+        post.id,
+        getVote(userId, post.id),
+        getVoteCount(post.id),
+        None, // TODO: actual informed probability
+        None, // TODO: actual effectOnTargetPost
+        post.deletedAt.isDefined,
+      )
+    }.toMap,
+  )
+}
