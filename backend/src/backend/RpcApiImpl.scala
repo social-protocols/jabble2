@@ -114,7 +114,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     IO {
       magnum.connect(ds) {
         val currentVote = getUserVoteState(userId, postId)
-        val newState    = if (direction == currentVote.vote) rpc.Direction.Neutral else direction
+        val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
         db.VoteEventRepo.insert(
           db.VoteEvent.Creator(
             userId = userId,
@@ -134,6 +134,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
           targetPostId,
           getAllSubtreePosts(targetPostId).map { post =>
             post.id -> rpc.PostState(
+              post.id,
               getUserVoteState(userId, post.id),
               getVoteCount(post.id),
               None, // TODO: actual informed probability
