@@ -15,7 +15,7 @@ gen-bsp:
 new-migration name:
   scripts/new-db-migration-atlas "{{name}}"
 
-docker:
+docker-build:
   earthly +build-docker
 
 docker-run:
