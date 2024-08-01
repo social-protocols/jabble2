@@ -2,7 +2,8 @@
 export default {
   content: [
     "./index.html",
-    "./frontend/src/**/*.scala",
+    "./frontend/src/**/*.scala", // for development
+    "out/frontend/fullLinkJS.dest/*.js" // for production build
   ],
   theme: {
     extend: {},
