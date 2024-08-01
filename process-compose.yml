@@ -40,6 +40,13 @@ processes:
         # watch should start, even if the initial build failed
         condition: process_completed
 
+  rpc-re:
+    # Workaround after changing sloth rpc api trait.
+    # Somehow a change in the rpc trait is not detected by the compiler.
+    # We need to clean and rebuild...
+    # TODO: isolate and report bug
+    command: find rpc | entr -np bash -c 'echo "cleaning rpc... (incremental compilation workaround)"; mill clean "{rpc,frontend,backend}"; touch rpc/src/rpc/RpcApi.scala'
+
   seed:
     command: echo schema.sql | entr -n bash -c "echo seeding database...; rm -f data.db; sqlite3 -init /dev/null data.db < schema.sql && echo success."
 
