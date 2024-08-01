@@ -12,6 +12,8 @@ import webcodegen.shoelace.SlButton.{value as _, *}
 import webcodegen.shoelace.SlButton
 import colibri.router.*
 import frontend.components.*
+import webcodegen.shoelace.SlIcon.{name as _, *}
+import webcodegen.shoelace.SlIcon
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
@@ -61,7 +63,12 @@ def app: VNode = {
 
   div(
     div(
-      button("Jabble ", span("alpha", cls := "text-gray-500"), onClick.as(Page.Index) --> page, cls := "font-bold"),
+      button(
+        "Jabble ",
+        span("alpha", slIcon(SlIcon.name := "rocket"), cls := "text-gray-500"),
+        onClick.as(Page.Index) --> page,
+        cls := "font-bold",
+      ),
       div(
         div(RpcClient.call.getUsername(), marginRight := "10px"),
         slButton("Login", onClick.as(Page.Login) --> page),

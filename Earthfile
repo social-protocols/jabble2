@@ -56,7 +56,7 @@ build-vite:
   WORKDIR /code
   COPY --dir +build-node-modules/node_modules ./
   COPY +build-mill/frontend ./out/frontend/fullLinkJS.dest
-  COPY --dir main.js index.html vite.config.ts style.css public ./
+  COPY --dir main.js index.html vite.config.mts tailwind.config.js postcss.config.js style.css public ./
   RUN devbox run -- bunx vite build
   SAVE ARTIFACT --keep-ts dist # timestamps must be kept for browser caching
 
