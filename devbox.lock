@@ -486,50 +486,50 @@
       }
     },
     "mill@latest": {
-      "last_modified": "2024-05-22T06:18:38Z",
-      "resolved": "github:NixOS/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e#mill",
+      "last_modified": "2024-07-20T00:34:32Z",
+      "resolved": "github:NixOS/nixpkgs/2d65995365a2a6b05db69e344d3b673c8d541bcd#mill",
       "source": "devbox-search",
-      "version": "0.11.7",
+      "version": "0.11.9",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/szxvvyqg0faigq53ylb1v58xnfys2cam-mill-0.11.7",
+              "path": "/nix/store/9hjrpdk08l2x22zb382d5m7yys7fgm04-mill-0.11.9",
               "default": true
             }
           ],
-          "store_path": "/nix/store/szxvvyqg0faigq53ylb1v58xnfys2cam-mill-0.11.7"
+          "store_path": "/nix/store/9hjrpdk08l2x22zb382d5m7yys7fgm04-mill-0.11.9"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/0yr5fc3vd5a4g0yss3pq6qw6j7llvxyn-mill-0.11.7",
+              "path": "/nix/store/wwpv13hawfa3zj5if5msksv12wc7y8h6-mill-0.11.9",
               "default": true
             }
           ],
-          "store_path": "/nix/store/0yr5fc3vd5a4g0yss3pq6qw6j7llvxyn-mill-0.11.7"
+          "store_path": "/nix/store/wwpv13hawfa3zj5if5msksv12wc7y8h6-mill-0.11.9"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/xsmbainicjkjfxvzv0inich19j20ixbl-mill-0.11.7",
+              "path": "/nix/store/m52mib7gxjxi4kcwi7yyi8hg8mlx8217-mill-0.11.9",
               "default": true
             }
           ],
-          "store_path": "/nix/store/xsmbainicjkjfxvzv0inich19j20ixbl-mill-0.11.7"
+          "store_path": "/nix/store/m52mib7gxjxi4kcwi7yyi8hg8mlx8217-mill-0.11.9"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/a6sajkc6f9n39p45hvnr6pyxwhnp27h9-mill-0.11.7",
+              "path": "/nix/store/plyr3h2n9xbnin9ikyl1bp12ds41pa17-mill-0.11.9",
               "default": true
             }
           ],
-          "store_path": "/nix/store/a6sajkc6f9n39p45hvnr6pyxwhnp27h9-mill-0.11.7"
+          "store_path": "/nix/store/plyr3h2n9xbnin9ikyl1bp12ds41pa17-mill-0.11.9"
         }
       }
     },
