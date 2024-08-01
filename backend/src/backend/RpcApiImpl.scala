@@ -102,10 +102,10 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def getReplyTree(rootPostId: Long): IO[Option[rpc.ReplyTree]] = {
+  def getPostTree(rootPostId: Long): IO[Option[rpc.PostTree]] = {
     IO {
       magnum.transact(ds) {
-        getRecursiveReplies(rootPostId)
+        getRecursiveComments(rootPostId)
       }
     }
   }
@@ -113,7 +113,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, parentId: Option[Long], direction: rpc.Direction): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
-        val currentVote = getUserVoteState(userId, postId)
+        val currentVote = getVote(userId, postId)
         val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
         db.VoteEventRepo.insert(
           db.VoteEvent.Creator(
@@ -127,15 +127,15 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def getCommentTreeState(targetPostId: Long): IO[rpc.CommentTreeState] = withUser { userId =>
+  def getPostTreeData(targetPostId: Long): IO[rpc.PostTreeData] = withUser { userId =>
     IO {
       magnum.transact(ds) {
-        rpc.CommentTreeState(
+        rpc.PostTreeData(
           targetPostId,
           getAllSubtreePosts(targetPostId).map { post =>
-            post.id -> rpc.PostState(
+            post.id -> rpc.PostData(
               post.id,
-              getUserVoteState(userId, post.id),
+              getVote(userId, post.id),
               getVoteCount(post.id),
               None, // TODO: actual informed probability
               None, // TODO: actual effectOnTargetPost

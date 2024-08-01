@@ -8,21 +8,23 @@ import webcodegen.shoelace.SlButton.{title as _, value as _, *}
 import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{title as _, value as _, *}
 import webcodegen.shoelace.SlInput
+import frontend.TreeContext
+import cats.effect.IO
 
-def postWithReplies(replyTree: rpc.ReplyTree, commentTreeState: rpc.CommentTreeState, refreshTrigger: VarEvent[Unit]): VNode = {
-  val postState = commentTreeState.posts.get(replyTree.post.id)
+def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
+  val postData = treeContext.postTreeData.posts(postTree.post.id)
   div(
-    postDetails(replyTree.post, postState, refreshTrigger),
+    postDetails(postTree.post, postData, refreshTrigger),
     div(
-      replyTree.replies.map { tree => postWithReplies(tree, commentTreeState, refreshTrigger) },
+      postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger) },
       cls := "ml-2 pl-3",
     ),
   )
 }
 
-def postDetails(post: rpc.Post, postState: Option[rpc.PostState], refreshTrigger: VarEvent[Unit]): VNode = {
+def postDetails(post: rpc.Post, postData: rpc.PostData, refreshTrigger: VarEvent[Unit]): VNode = {
   div(
-    postInfoBar(post, postState),
+    postInfoBar(post, postData),
     post.content,
     postActionBar(post, refreshTrigger),
     cls := "mb-4",
@@ -31,14 +33,18 @@ def postDetails(post: rpc.Post, postState: Option[rpc.PostState], refreshTrigger
 
 val effectSizeThresholds: Vector[Float] = Vector(0.1f, 0.3f, 0.5f, 0.7f, 0.9f)
 
-def convincingnessScale(effectSize: Float): String = {
+def convincingnessScale(effectSize: Double): String = {
   val numberOfFlames = effectSizeThresholds.filter(e => if (effectSize >= e) true else false).length
   "🔥".repeat(numberOfFlames)
 }
 
-def postInfoBar(post: rpc.Post, postState: Option[rpc.PostState]): VNode = {
-  val nVotes     = postState.fold(0L)(_.voteCount)
-  val effectSize = 0.4f // TODO: show the actual score (will be in postState.effectSize and can be inlined)
+def postInfoBar(post: rpc.Post, postData: rpc.PostData): VNode = {
+  val effectSize: Double = postData.effectOnTargetPost.map(_.effectSizeOnTarget) match {
+    case Some(effectSize) => effectSize
+    case None =>
+      println(s"No effect found for post ${postData.postId} on post ${post.id}, defaulting to 0.0")
+      0.0
+  }
 
   // TODO: entire postInfoBar should be a link to stats page
   div(
@@ -54,8 +60,8 @@ def postInfoBar(post: rpc.Post, postState: Option[rpc.PostState]): VNode = {
     },
     span(
       cls := "opacity-50",
-      nVotes,
-      if (nVotes == 1) " vote" else " votes",
+      postData.voteCount,
+      if (postData.voteCount == 1) " vote" else " votes",
     ),
     span(
       cls := "opacity-50",

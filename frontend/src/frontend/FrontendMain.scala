@@ -110,16 +110,31 @@ def loginPage = {
   authControl(authnClient)
 }
 
-def postPage(postId: Long, refreshTrigger: VarEvent[Unit]) = {
-  val replyTree        = RpcClient.call.getReplyTree(postId)
-  val commentTreeState = RpcClient.call.getCommentTreeState(postId)
-  div(
-    replyTree.map(_.map { tree =>
-      commentTreeState.map { treeState =>
-        postWithReplies(tree, treeState, refreshTrigger)
-      }
-    }),
-    maxWidth := "960px",
-    margin := "0 auto",
-  )
+case class TreeContext(
+  postTree: rpc.PostTree,
+  postTreeData: rpc.PostTreeData,
+  setPostTreeDataState: (postTreeData: rpc.PostTreeData) => Unit,
+)
+
+def postPage(postId: Long, refreshTrigger: VarEvent[Unit]) = lift {
+  val postTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
+
+  postTree match {
+    case Some(initialTree) =>
+      // val postTreeState = Var(initialTree)
+
+      val treeContext: TreeContext = TreeContext(
+        initialTree,
+        unlift(RpcClient.call.getPostTreeData(postId)),
+        (postTreeData: rpc.PostTreeData) => (),
+      )
+
+      div(
+        postWithReplies(initialTree, treeContext, refreshTrigger),
+        maxWidth := "960px",
+        margin := "0 auto",
+      )
+    case None => div(s"Post with id ${postId} not found")
+  }
+
 }
