@@ -5,6 +5,9 @@ _default:
 dev:
     process-compose up -t=false
 
+dev-tui:
+    process-compose up
+
 db:
   sqlite3 data.db
 
