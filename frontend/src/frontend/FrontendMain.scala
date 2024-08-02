@@ -62,34 +62,37 @@ def app: VNode = {
   val refreshTrigger = VarEvent[Unit]()
 
   div(
-    div(
-      button(
-        "Jabble ",
-        span("alpha", slIcon(SlIcon.name := "rocket"), cls := "text-gray-500"),
-        onClick.as(Page.Index) --> page,
-        cls := "font-bold",
-      ),
+    cls := "flex flex-col",
+    header(
+      cls := "flex flex-col w-full px-2 py-2",
       div(
-        div(RpcClient.call.getUsername(), marginRight := "10px"),
-        slButton("Login", onClick.as(Page.Login) --> page),
-        marginLeft := "auto",
-        display := "flex",
-        alignItems := "baseline",
+        cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
+        button(
+          "Jabble ",
+          span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
+          onClick.as(Page.Index) --> page,
+          cls := "font-bold",
+        ),
+        div(
+          cls := "flex items-center gap-10 ml-auto",
+          div(RpcClient.call.getUsername(), marginRight := "10px"),
+          slButton("Login", onClick.as(Page.Login) --> page),
+        ),
       ),
-      display := "flex",
     ),
-    refreshTrigger.observable
-      .prepend(())
-      .map(_ =>
-        page.map[VMod] {
-          case Page.Index    => frontPage(refreshTrigger)
-          case Page.Login    => loginPage
-          case Page.Post(id) => postPage(id.toLong, refreshTrigger)
-          case _             => div("page not found")
-        },
-      ),
-    width := "1200px",
-    margin := "0 auto",
+    div(
+      cls := "mx-auto w-full max-w-3xl px-2",
+      refreshTrigger.observable
+        .prepend(())
+        .map(_ =>
+          page.map[VMod] {
+            case Page.Index    => frontPage(refreshTrigger)
+            case Page.Login    => loginPage
+            case Page.Post(id) => postPage(id.toLong, refreshTrigger)
+            case _             => div("page not found")
+          },
+        ),
+    ),
   )
 }
 
