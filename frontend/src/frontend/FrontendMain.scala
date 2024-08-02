@@ -123,14 +123,20 @@ case class TreeContext(
 def postPage(postId: Long, refreshTrigger: VarEvent[Unit]): VMod = lift {
   val initialPostTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
   val initialPostTreeData                   = unlift(RpcClient.call.getPostTreeData(postId))
+  val parents                               = unlift(RpcClient.call.getParentThread(postId))
 
   initialPostTree match {
-    case Some(tree) => renderPostPage(tree, initialPostTreeData, refreshTrigger)
+    case Some(tree) => renderPostPage(tree, initialPostTreeData, parents, refreshTrigger)
     case None       => div(s"Post with id ${postId} not found")
   }
 }
 
-def renderPostPage(initialPostTree: rpc.PostTree, initialPostTreeData: rpc.PostTreeData, refreshTrigger: VarEvent[Unit]): VMod = {
+def renderPostPage(
+  initialPostTree: rpc.PostTree,
+  initialPostTreeData: rpc.PostTreeData,
+  parents: Vector[rpc.Post],
+  refreshTrigger: VarEvent[Unit],
+): VMod = {
   val postTreeState     = Var(initialPostTree)
   val postTreeDataState = Var(initialPostTreeData)
 
@@ -143,6 +149,7 @@ def renderPostPage(initialPostTree: rpc.PostTree, initialPostTreeData: rpc.PostT
     )
 
     div(
+      parentThread(parents),
       postWithReplies(initialPostTree, treeContext, refreshTrigger),
       maxWidth := "960px",
       margin := "0 auto",
