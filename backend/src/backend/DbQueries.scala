@@ -48,3 +48,35 @@ def getDbPostTreeData(targetPostId: Long, userId: String)(using con: DbCon): rpc
     }.toMap,
   )
 }
+
+def getTransitiveParents(postId: Long)(using con: DbCon): Vector[rpc.Post] = {
+  val parentThreadWithTargetPost = sql"""
+    with recursive transitive_parents as (
+      select
+        id
+        , parent_id
+        , author_id
+        , content
+        , created_at
+        , deleted_at
+        , is_private
+      from post
+      where id = ${postId}
+      union all
+      select
+        p.id
+        , p.parent_id
+        , p.author_id
+        , p.content
+        , p.created_at
+        , p.deleted_at
+        , p.is_private
+      from post p
+      inner join transitive_parents tp
+      on p.id = tp.parent_id
+    )
+    select *
+    from transitive_parents
+  """.query[rpc.Post].run()
+  parentThreadWithTargetPost.tail.reverse
+}
