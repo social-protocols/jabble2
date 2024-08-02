@@ -26,12 +26,12 @@ def getReplyIds(postId: Long)(using con: DbCon): Vector[Long] = {
   """.query[Long].run()
 }
 
-def getRecursiveReplies(postId: Long)(using con: DbCon): Option[rpc.ReplyTree] = {
+def getRecursiveComments(postId: Long)(using con: DbCon): Option[rpc.PostTree] = {
   val post = db.PostRepo.findById(postId)
   post.map { post =>
     val replyIds = getReplyIds(postId)
-    val replies  = replyIds.flatMap(getRecursiveReplies)
-    rpc.ReplyTree(post.to[rpc.Post], replies)
+    val replies  = replyIds.flatMap(getRecursiveComments)
+    rpc.PostTree(post.to[rpc.Post], replies)
   }
 }
 
@@ -51,7 +51,7 @@ def getAllSubtreePosts(subrootPostId: Long)(using con: DbCon): Vector[rpc.Post] 
   }
 }
 
-def getUserVoteState(userId: String, postId: Long)(using con: DbCon): rpc.Direction = {
+def getVote(userId: String, postId: Long)(using con: DbCon): rpc.Direction = {
   val direction = sql"""
     select vote
     from vote
@@ -69,4 +69,20 @@ def getVoteCount(postId: Long)(using con: DbCon): Long = {
     where post_id = ${postId}
     and vote != 0
   """.query[Long].run().head
+}
+
+def getDbPostTreeData(targetPostId: Long, userId: String)(using con: DbCon): rpc.PostTreeData = {
+  rpc.PostTreeData(
+    targetPostId,
+    getAllSubtreePosts(targetPostId).view.map { post =>
+      post.id -> rpc.PostData(
+        post.id,
+        getVote(userId, post.id),
+        getVoteCount(post.id),
+        None, // TODO: actual informed probability
+        None, // TODO: actual effectOnTargetPost
+        post.deletedAt.isDefined,
+      )
+    }.toMap,
+  )
 }

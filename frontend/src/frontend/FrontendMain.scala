@@ -62,34 +62,37 @@ def app: VNode = {
   val refreshTrigger = VarEvent[Unit]()
 
   div(
-    div(
-      button(
-        "Jabble ",
-        span("alpha", slIcon(SlIcon.name := "rocket"), cls := "text-gray-500"),
-        onClick.as(Page.Index) --> page,
-        cls := "font-bold",
-      ),
+    cls := "flex flex-col",
+    header(
+      cls := "flex flex-col w-full px-2 py-2",
       div(
-        div(RpcClient.call.getUsername(), marginRight := "10px"),
-        slButton("Login", onClick.as(Page.Login) --> page),
-        marginLeft := "auto",
-        display := "flex",
-        alignItems := "baseline",
+        cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
+        button(
+          "Jabble ",
+          span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
+          onClick.as(Page.Index) --> page,
+          cls := "font-bold",
+        ),
+        div(
+          cls := "flex items-center gap-10 ml-auto",
+          div(RpcClient.call.getUsername(), marginRight := "10px"),
+          slButton("Login", onClick.as(Page.Login) --> page),
+        ),
       ),
-      display := "flex",
     ),
-    refreshTrigger.observable
-      .prepend(())
-      .map(_ =>
-        page.map[VMod] {
-          case Page.Index    => frontPage(refreshTrigger)
-          case Page.Login    => loginPage
-          case Page.Post(id) => postPage(id.toLong, refreshTrigger)
-          case _             => div("page not found")
-        },
-      ),
-    width := "1200px",
-    margin := "0 auto",
+    div(
+      cls := "mx-auto w-full max-w-3xl px-2",
+      refreshTrigger.observable
+        .prepend(())
+        .map(_ =>
+          page.map[VMod] {
+            case Page.Index    => frontPage(refreshTrigger)
+            case Page.Login    => loginPage
+            case Page.Post(id) => postPage(id.toLong, refreshTrigger)
+            case _             => div("page not found")
+          },
+        ),
+    ),
   )
 }
 
@@ -110,16 +113,39 @@ def loginPage = {
   authControl(authnClient)
 }
 
-def postPage(postId: Long, refreshTrigger: VarEvent[Unit]) = {
-  val replyTree        = RpcClient.call.getReplyTree(postId)
-  val commentTreeState = RpcClient.call.getCommentTreeState(postId)
-  div(
-    replyTree.map(_.map { tree =>
-      commentTreeState.map { treeState =>
-        postWithReplies(tree, treeState, refreshTrigger)
-      }
-    }),
-    maxWidth := "960px",
-    margin := "0 auto",
-  )
+case class TreeContext(
+  targetPostId: Long,
+  postTree: rpc.PostTree,
+  postTreeData: rpc.PostTreeData,
+  setPostTreeDataState: (postTreeData: rpc.PostTreeData) => Unit,
+)
+
+def postPage(postId: Long, refreshTrigger: VarEvent[Unit]): VMod = lift {
+  val initialPostTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
+  val initialPostTreeData                   = unlift(RpcClient.call.getPostTreeData(postId))
+
+  initialPostTree match {
+    case Some(tree) => renderPostPage(tree, initialPostTreeData, refreshTrigger)
+    case None       => div(s"Post with id ${postId} not found")
+  }
+}
+
+def renderPostPage(initialPostTree: rpc.PostTree, initialPostTreeData: rpc.PostTreeData, refreshTrigger: VarEvent[Unit]): VMod = {
+  val postTreeState     = Var(initialPostTree)
+  val postTreeDataState = Var(initialPostTreeData)
+
+  Rx {
+    val treeContext: TreeContext = TreeContext(
+      initialPostTreeData.targetPostId,
+      postTreeState(),
+      postTreeDataState(),
+      postTreeDataState.set,
+    )
+
+    div(
+      postWithReplies(initialPostTree, treeContext, refreshTrigger),
+      maxWidth := "960px",
+      margin := "0 auto",
+    )
+  }
 }

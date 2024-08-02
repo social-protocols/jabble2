@@ -5,6 +5,9 @@ _default:
 dev:
     process-compose up -t=false
 
+dev-tui:
+    process-compose up
+
 db:
   sqlite3 data.db
 
@@ -29,3 +32,5 @@ docker-run:
 ci:
   (git ls-files && git ls-files --others --exclude-standard) | entr -cnr earthly +ci-test
 
+format:
+  scalafmt backend frontend rpc
