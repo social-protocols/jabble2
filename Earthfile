@@ -81,7 +81,7 @@ build-docker:
     -Dcom.sun.management.jmxremote.ssl=false \
     -Dcom.sun.management.jmxremote.rmi.port=9010 \
     -Djava.rmi.server.hostname=localhost"
-  # add $JAVA_OPTS_DEBUG to be able to connect with a jmx debugger like visualvm
+  # add $JAVA_OPTS_DEBUG after $JAVA_OPTS to be able to connect with a jmx debugger like visualvm
   CMD echo "starting jvm..." && java $JAVA_OPTS -jar backend.jar Migrate HttpServer
   SAVE IMAGE app:latest
 
