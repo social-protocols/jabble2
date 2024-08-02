@@ -10,6 +10,8 @@ import webcodegen.shoelace.SlInput.{title as _, value as _, *}
 import webcodegen.shoelace.SlInput
 import frontend.TreeContext
 import cats.effect.IO
+import webcodegen.shoelace.SlIcon.*
+import webcodegen.shoelace.SlIcon
 
 def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
   val postData = treeContext.postTreeData.posts(postTree.post.id)
@@ -81,20 +83,25 @@ def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarE
     treeContext.setPostTreeDataState(newPostTreeData)
   }
 
+  val currentVote  = treeContext.postTreeData.posts(post.id).userVote
+  val upvoteIcon   = if (currentVote == rpc.Direction.Up) "arrow-up-circle-fill" else "arrow-up-circle"
+  val downvoteIcon = if (currentVote == rpc.Direction.Down) "arrow-down-circle-fill" else "arrow-down-circle"
+
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
       button(
-        "⇧",
+        slIcon(SlIcon.name := upvoteIcon),
         onClick.doEffect { submitVote(rpc.Direction.Up) },
       ),
       span("Vote"),
       button(
-        "⇩",
+        slIcon(SlIcon.name := downvoteIcon),
         onClick.doEffect { submitVote(rpc.Direction.Down) },
       ),
       button(
-        "🗨 Reply",
+        slIcon(SlIcon.name := "chat-right"),
+        " Reply",
         onClick.doAction {
           showReplyForm.update(!_)
         },
