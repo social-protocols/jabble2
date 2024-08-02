@@ -10,9 +10,9 @@ processes:
     command: mill --jobs 0 --color true '{backend.compile,frontend.fastLinkJS}'
 
   vite:
-    command: bunx vite dev --port 5173 --strictPort
+    command: bunx vite dev --port 12345 --strictPort
     ports:
-      - 5173:5173
+      - 12345:12345
     depends_on:
       npm:
         condition: process_completed_successfully
