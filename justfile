@@ -18,6 +18,10 @@ gen-bsp:
 new-migration name:
   scripts/new-db-migration-atlas "{{name}}"
 
+# checks if migrations produce the same schema as in schema.sql
+check-migrations:
+  find backend/resources/migrations schema.sql scripts/diff_schemas | entr -cnr scripts/diff_schemas
+
 docker-build:
   earthly +build-docker
 

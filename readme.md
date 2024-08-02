@@ -39,7 +39,7 @@ Technologies used:
     devbox services up
     ```
    The services are defined in [process-compose.yml](process-compose.yml).
-1. Point your browser to <http://localhost:5173>
+1. Point your browser to <http://localhost:12345>
 1. Edit [FrontendMain.scala](frontend/src/main/scala/frontend/FrontendMain.scala) to see hot reloading.
 1. Production build:
    ```shell
@@ -71,5 +71,5 @@ Technologies used:
     # to start the devserver with hot reloading
     npx vite dev
     ```
-1. Point your browser to <http://localhost:5173>
+1. Point your browser to <http://localhost:12345>
 1. Edit [FrontendMain.scala](frontend/src/main/scala/frontend/FrontendMain.scala) to see hot reloading.
