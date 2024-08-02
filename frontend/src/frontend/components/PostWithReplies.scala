@@ -36,7 +36,7 @@ def postDetails(post: rpc.Post, postData: rpc.PostData, treeContext: TreeContext
 val effectSizeThresholds: Vector[Float] = Vector(0.1f, 0.3f, 0.5f, 0.7f, 0.9f)
 
 def convincingnessScale(effectSize: Double): String = {
-  val numberOfFlames = effectSizeThresholds.filter(e => if (effectSize >= e) true else false).length
+  val numberOfFlames = effectSizeThresholds.count(effectSize >= _)
   "🔥".repeat(numberOfFlames)
 }
 
