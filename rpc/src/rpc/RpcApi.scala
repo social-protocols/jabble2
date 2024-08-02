@@ -39,14 +39,14 @@ case class PostTree(post: Post, replies: Vector[PostTree]) derives ReadWriter:
 case class Effect(
   postId: Long,
   commentId: Option[Long],
-  p: Long,
+  p: Double,
   pCount: Long,
   pSize: Long,
-  q: Long,
+  q: Double,
   qCount: Long,
   qSize: Long,
-  r: Long,
-  weight: Long,
+  r: Double,
+  weight: Double,
 ) derives ReadWriter:
   lazy val effectSizeOnTarget: Double = relativeEntropy(p, q) * pSize
 
