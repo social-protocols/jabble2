@@ -88,7 +88,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
 
   def createReply(parentId: Long, targetPostId: Long, content: String): IO[(rpc.PostTree, rpc.PostTreeData)] = withUser { userId =>
     IO {
-      magnum.connect(ds) {
+      magnum.transact(ds) {
         val newPost: rpc.Post =
           db.PostRepo.insertReturning(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content)).to[rpc.Post]
         (
