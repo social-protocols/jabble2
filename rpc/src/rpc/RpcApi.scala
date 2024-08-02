@@ -15,6 +15,7 @@ trait RpcApi {
   def getPostTree(rootPostId: Long): IO[Option[PostTree]]
   def vote(postId: Long, targetPostId: Long, direction: Direction): IO[PostTreeData]
   def getPostTreeData(targetPostId: Long): IO[PostTreeData]
+  def getParentThread(targetPostId: Long): IO[Vector[Post]]
 }
 
 case class Post(

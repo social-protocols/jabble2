@@ -137,4 +137,12 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def getPostTreeData(targetPostId: Long): IO[rpc.PostTreeData] = withUser { userId =>
     IO { magnum.transact(ds) { getDbPostTreeData(targetPostId, userId) } }
   }
+
+  def getParentThread(targetPostId: Long): IO[Vector[rpc.Post]] = {
+    IO {
+      magnum.connect(ds) {
+        getTransitiveParents(targetPostId)
+      }
+    }
+  }
 }
