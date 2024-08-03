@@ -1,0 +1,15 @@
+version: "2"
+plugins:
+- name: sqlc-gen-from-template
+  process:
+    cmd: sqlc-gen-from-template
+sql:
+  - engine: "sqlite"
+    queries: "queries.sql"
+    schema: "schema.sql"
+    codegen:
+    - out: backend/src/queries
+      plugin: sqlc-gen-from-template
+      options:
+        query_template: "query_template.gotmpl"
+        query_file_extension: "scala"
