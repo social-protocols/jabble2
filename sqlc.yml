@@ -11,6 +11,6 @@ sql:
     - out: backend/src/queries
       plugin: sqlc-gen-from-template
       options:
-        query_template: "query_template.gotmpl"
+        query_template: "query_template.go.tmpl"
         query_file_extension: "scala"
         formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin"
