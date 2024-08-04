@@ -41,7 +41,7 @@ processes:
         condition: process_completed
 
   query:
-    command: find queries.sql schema.sql query_template.gotmpl sqlc.yml | entr -nr bash -c "sqlc generate && scalafmt backend/src/queries"
+    command: find queries.sql schema.sql query_template.gotmpl sqlc.yml | entr -nr scripts/generate-query-code
 
   rpc-re:
     # Workaround after changing sloth rpc api trait.

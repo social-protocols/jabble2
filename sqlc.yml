@@ -2,7 +2,7 @@ version: "2"
 plugins:
 - name: sqlc-gen-from-template
   process:
-    cmd: sqlc-gen-from-template
+    cmd: sqlc-gen-from-template # https://github.com/fdietze/sqlc-gen-from-template
 sql:
   - engine: "sqlite"
     queries: "queries.sql"
@@ -13,3 +13,4 @@ sql:
       options:
         query_template: "query_template.gotmpl"
         query_file_extension: "scala"
+        formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin"

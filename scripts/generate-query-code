@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+targetDir="backend/src/queries"
+
+rm -rf "$targetDir"
+echo "Linting queries..."
+sqlc vet
+echo "Generating query code..."
+sqlc generate
