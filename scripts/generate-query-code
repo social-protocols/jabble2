@@ -2,7 +2,8 @@
 
 set -Eeuo pipefail
 
-targetDir="backend/src/queries"
+# TODO: read directly from sqlc.yml using yq
+targetDir="backend/src/backend/queries"
 
 rm -rf "$targetDir"
 echo "Linting queries..."

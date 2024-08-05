@@ -8,9 +8,9 @@ sql:
     queries: "queries.sql"
     schema: "schema.sql"
     codegen:
-    - out: backend/src/queries
+    - out: backend/src/backend/queries
       plugin: sqlc-gen-from-template
       options:
-        query_template: "query_template.go.tmpl"
-        query_file_extension: "scala"
+        template: "query_template.go.tmpl"
+        filename: "Queries.scala"
         formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin"

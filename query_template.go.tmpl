@@ -17,6 +17,8 @@ package backend.queries
 import com.augustnagro.magnum
 import com.augustnagro.magnum.*
 
+{{- range .Queries }}
+
 {{range .Comments}}// {{.}}
 {{end}}
 
@@ -67,3 +69,5 @@ def {{.Name}}({{range .Params}}
   {{- if eq .Cmd ":many" }}.query[{{ $rowType }}].run(){{end}}
   {{- if eq .Cmd ":one" }}.query[{{ $rowType }}].run().head{{end}}
 }
+
+{{- end -}}
