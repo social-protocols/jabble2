@@ -22,6 +22,10 @@ new-migration name:
 check-migrations:
   find backend/resources/migrations schema.sql scripts/diff_schemas | entr -cnr scripts/diff_schemas
 
+# generates a type-safe function for every query in queries.sql
+generate-query-code:
+  scripts/generate-query-code
+
 docker-build:
   earthly +build-docker
 

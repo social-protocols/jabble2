@@ -40,6 +40,9 @@ processes:
         # watch should start, even if the initial build failed
         condition: process_completed
 
+  query:
+    command: find queries.sql schema.sql query_template.go.tmpl sqlc.yml | entr -nr scripts/generate-query-code
+
   rpc-re:
     # Workaround after changing sloth rpc api trait.
     # Somehow a change in the rpc trait is not detected by the compiler.

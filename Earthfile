@@ -28,6 +28,16 @@ test-migrations:
   COPY scripts/diff_schemas scripts/diff_schemas
   RUN devbox run -- scripts/diff_schemas
 
+test-generate-query-code:
+  FROM +devbox
+  WORKDIR /code
+  # since generated code is formatted using scalafmt, cache coursier
+  CACHE --chmod 0777 --id coursier /home/devbox/.cache/coursier
+  COPY scripts/generate-query-code scripts/generate-query-code
+  COPY schema.sql queries.sql query_template.go.tmpl sqlc.yml .scalafmt.conf ./
+  COPY backend/src/backend/queries/Queries.scala backend/src/backend/queries/
+  RUN devbox run -- "sqlc vet && sqlc diff"
+
 build-mill:
   FROM +devbox
   WORKDIR /code
@@ -106,7 +116,7 @@ app-deploy:
 scalafmt:
   FROM +devbox
   WORKDIR /code
-  CACHE --chmod 0777 /home/devbox/.cache/coursier
+  CACHE --chmod 0777 --id coursier /home/devbox/.cache/coursier
   COPY --dir .scalafmt.conf backend frontend rpc ./
   RUN devbox run -- scalafmt --check
 
@@ -115,6 +125,7 @@ lint:
 
 ci-test:
   # BUILD +test-migrations
+  BUILD +test-generate-query-code
   BUILD +lint
   BUILD +build-mill
   BUILD +build-vite

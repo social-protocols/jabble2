@@ -677,6 +677,54 @@
         }
       }
     },
+    "sqlc@latest": {
+      "last_modified": "2024-07-20T09:11:00Z",
+      "resolved": "github:NixOS/nixpkgs/6e14bbce7bea6c4efd7adfa88a40dac750d80100#sqlc",
+      "source": "devbox-search",
+      "version": "1.26.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/da4bxkk0grsj6pzx9z15ycshsbrq38cd-sqlc-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/da4bxkk0grsj6pzx9z15ycshsbrq38cd-sqlc-1.26.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/j793mdysq8by9hsvnnw1fxswxdz2az3f-sqlc-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/j793mdysq8by9hsvnnw1fxswxdz2az3f-sqlc-1.26.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/27mdla09qdlrl4lbr0vdivxy77b2cndd-sqlc-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/27mdla09qdlrl4lbr0vdivxy77b2cndd-sqlc-1.26.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/g1sknqzbg9sn09fwff5v80j57waay71r-sqlc-1.26.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/g1sknqzbg9sn09fwff5v80j57waay71r-sqlc-1.26.0"
+        }
+      }
+    },
     "sqlite-interactive@latest": {
       "last_modified": "2024-06-06T04:00:50Z",
       "resolved": "github:NixOS/nixpkgs/818dbe2f96df233d2041739d6079bb616d3e5597#sqlite-interactive",

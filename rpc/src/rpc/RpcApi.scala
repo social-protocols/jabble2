@@ -94,3 +94,12 @@ enum Direction(val value: Int) derives ReadWriter {
   case Neutral extends Direction(0)
   case Down    extends Direction(-1)
 }
+
+object Direction {
+  def fromDb(direction: Long): Direction = direction match {
+    case 1     => rpc.Direction.Up
+    case 0     => rpc.Direction.Neutral
+    case -1    => rpc.Direction.Down
+    case other => throw Exception(s"Not a valid Direction encoding: $other")
+  }
+}
