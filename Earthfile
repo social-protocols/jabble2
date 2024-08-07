@@ -35,7 +35,7 @@ test-generate-query-code:
   CACHE --chmod 0777 --id coursier /home/devbox/.cache/coursier
   COPY scripts/generate-query-code scripts/generate-query-code
   COPY schema.sql queries.sql query_template.go.tmpl sqlc.yml .scalafmt.conf ./
-  COPY backend/src/queries backend/src/queries
+  COPY backend/src/backend/queries/Queries.scala backend/src/backend/queries/
   RUN devbox run -- "sqlc vet && sqlc diff"
 
 build-mill:
