@@ -1,3 +1,6 @@
+# https://github.com/F1bonacc1/process-compose#readme
+
+
 environment:
   - "FORCE_COLOR=1"
 processes:
@@ -56,20 +59,19 @@ processes:
     command: echo schema.sql | entr -n bash -c "echo seeding database...; rm -f data.db; sqlite3 -init /dev/null data.db < schema.sql && echo success."
 
   auth:
+    environment:
+      - "APP_DOMAINS=$AUTHN_APP_DOMAINS"
+      - "AUTHN_URL=https://ox-darling-heartily.ngrok-free.app"
+      - "PORT=3001"
+      - "PUBLIC_PORT=3000"
+      - "SECRET_KEY_BASE=test"
+      - "DATABASE_URL=sqlite3:///tmp/authn.db"
+      - "ENABLE_SIGNUP=false"
+      - "HTTP_AUTH_USERNAME=admin"
+      - "HTTP_AUTH_PASSWORD=adminpw"
+      - "TWITTER_OAUTH_CREDENTIALS=$AUTHN_TWITTER_OAUTH_CREDENTIALS"
     command: |
       # https://github.com/keratin/authn-server/tree/main/docs#readme
-      docker volume rm authn-data
-      docker run --name authn --rm -p 3000:3000 -p 3001:3001 \
-        -v authn-data:/data \
-        -e APP_DOMAINS="localhost" \
-        -e AUTHN_URL="http://localhost:3000" \
-        -e PORT=3001 \
-        -e PUBLIC_PORT=3000 \
-        -e SECRET_KEY_BASE="test" \
-        -e DATABASE_URL="sqlite3://localhost//data/authn.db" \
-        -e ENABLE_SIGNUP=false \
-        -e HTTP_AUTH_USERNAME="admin" \
-        -e HTTP_AUTH_PASSWORD="adminpw" \
-        keratin/authn-server:latest \
-        sh -c "./authn migrate && ./authn server"
+      ../authn-server/authn-server migrate && \
+      ../authn-server/authn-server server
 
