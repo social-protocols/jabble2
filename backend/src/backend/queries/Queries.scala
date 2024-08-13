@@ -1,4 +1,4 @@
-package backend.queries
+package backend.tmpQueries
 
 import com.augustnagro.magnum
 import com.augustnagro.magnum.*
