@@ -13,22 +13,36 @@ import cats.effect.IO
 import webcodegen.shoelace.SlIcon.*
 import webcodegen.shoelace.SlIcon
 
-def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
+def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VMod = {
+  val hidePost     = treeContext.collapsedState.hidePost.getOrElse(postTree.post.id, false)
+  val hideChildren = treeContext.collapsedState.hideChildren.getOrElse(postTree.post.id, false)
+
   val postData = treeContext.postTreeDataState.posts(postTree.post.id)
-  div(
-    postDetails(postTree.post, postData, treeContext, refreshTrigger),
+
+  VMod.when(!hidePost)(
     div(
-      postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger) },
-      cls := "ml-2 pl-3",
-    ),
+      postDetails(postTree.post, postData, postTree, treeContext, refreshTrigger),
+      VMod.when(!hideChildren)(
+        div(
+          postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger) },
+          cls := "ml-2 pl-3",
+        )
+      ),
+    )
   )
 }
 
-def postDetails(post: rpc.Post, postData: rpc.PostData, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
+def postDetails(
+  post: rpc.Post,
+  postData: rpc.PostData,
+  postTree: rpc.PostTree,
+  treeContext: TreeContext,
+  refreshTrigger: VarEvent[Unit],
+): VNode = {
   div(
     postInfoBar(post, postData),
     post.content,
-    postActionBar(post, treeContext, refreshTrigger),
+    postActionBar(post, postTree, treeContext, refreshTrigger),
     cls := "mb-4",
   )
 }
@@ -73,7 +87,7 @@ def postInfoBar(post: rpc.Post, postData: rpc.PostData): VNode = {
   )
 }
 
-def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
+def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
   val contentState = Var("")
 
   val showReplyForm = Var(false)
@@ -87,9 +101,35 @@ def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarE
   val upvoteIcon   = if (currentVote == rpc.Direction.Up) "arrow-up-circle-fill" else "arrow-up-circle"
   val downvoteIcon = if (currentVote == rpc.Direction.Down) "arrow-down-circle-fill" else "arrow-down-circle"
 
+  val hasChildren    = postTree.replies.nonEmpty
+  val childrenHidden = treeContext.collapsedState.hideChildren.getOrElse(post.id, false)
+
+  def toggleHideChildren() = {
+    if (childrenHidden) {
+      // expand
+      var newHideChildrenState = treeContext.collapsedState.hideChildren.updated(post.id, false)
+      // collapse direct children
+      postTree.replies.foreach { reply =>
+        newHideChildrenState = newHideChildrenState.updated(reply.post.id, true)
+      }
+      treeContext.setCollapsedState(treeContext.collapsedState.copy(hideChildren = newHideChildrenState))
+    } else {
+      // collapse
+      treeContext.setCollapsedState(
+        treeContext.collapsedState.copy(hideChildren = treeContext.collapsedState.hideChildren.updated(post.id, true))
+      )
+    }
+  }
+
+  val collapseButtonIconName = if (childrenHidden) "chevron-right" else "chevron-down"
+  val collapseButtonTitle    = if (childrenHidden) "Expand this comment" else "Collapse this comment"
+
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
+      VMod.when(hasChildren)(
+        button(slIcon(SlIcon.name := collapseButtonIconName), title := collapseButtonTitle, onClick.doAction { toggleHideChildren() })
+      ),
       button(
         slIcon(SlIcon.name := upvoteIcon),
         onClick.doEffect { submitVote(rpc.Direction.Up) },
@@ -107,7 +147,7 @@ def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarE
         },
       ),
       showReplyForm.map { show =>
-        if (show) {
+        VMod.when(show)(
           button(
             "✕",
             cls := "ml-auto self-center pr-2",
@@ -115,13 +155,11 @@ def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarE
               showReplyForm.set(false)
             },
           )
-        } else {
-          VMod.empty
-        }
+        )
       },
     ),
     showReplyForm.map { show =>
-      if (show) {
+      VMod.when(show)(
         div(
           slInput(
             SlInput.placeholder := "Enter your reply",
@@ -138,9 +176,7 @@ def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarE
             },
           ),
         )
-      } else {
-        VMod.empty
-      }
+      )
     },
   )
 }
