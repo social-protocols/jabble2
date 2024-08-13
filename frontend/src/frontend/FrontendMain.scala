@@ -116,8 +116,16 @@ def loginPage = {
 case class TreeContext(
   targetPostId: Long,
   postTree: rpc.PostTree,
-  postTreeData: rpc.PostTreeData,
+  postTreeDataState: rpc.PostTreeData,
   setPostTreeDataState: (postTreeData: rpc.PostTreeData) => Unit,
+  collapsedState: CollapsedStatus,
+  setCollapsedState: (collapsedState: CollapsedStatus) => Unit,
+)
+
+case class CollapsedStatus(
+  currentlyFocussedPostId: Long,
+  hidePost: Map[Long, Boolean],
+  hideChildren: Map[Long, Boolean],
 )
 
 def postPage(postId: Long, refreshTrigger: VarEvent[Unit]): VMod = lift {
@@ -139,6 +147,7 @@ def renderPostPage(
 ): VMod = {
   val postTreeState     = Var(initialPostTree)
   val postTreeDataState = Var(initialPostTreeData)
+  val collapsedState    = Var(CollapsedStatus(initialPostTreeData.targetPostId, Map(), Map()))
 
   Rx {
     val treeContext: TreeContext = TreeContext(
@@ -146,6 +155,8 @@ def renderPostPage(
       postTreeState(),
       postTreeDataState(),
       postTreeDataState.set,
+      collapsedState(),
+      collapsedState.set,
     )
 
     div(

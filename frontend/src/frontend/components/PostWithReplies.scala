@@ -14,7 +14,7 @@ import webcodegen.shoelace.SlIcon.*
 import webcodegen.shoelace.SlIcon
 
 def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
-  val postData = treeContext.postTreeData.posts(postTree.post.id)
+  val postData = treeContext.postTreeDataState.posts(postTree.post.id)
   div(
     postDetails(postTree.post, postData, treeContext, refreshTrigger),
     div(
@@ -83,7 +83,7 @@ def postActionBar(post: rpc.Post, treeContext: TreeContext, refreshTrigger: VarE
     treeContext.setPostTreeDataState(newPostTreeData)
   }
 
-  val currentVote  = treeContext.postTreeData.posts(post.id).userVote
+  val currentVote  = treeContext.postTreeDataState.posts(post.id).userVote
   val upvoteIcon   = if (currentVote == rpc.Direction.Up) "arrow-up-circle-fill" else "arrow-up-circle"
   val downvoteIcon = if (currentVote == rpc.Direction.Down) "arrow-down-circle-fill" else "arrow-down-circle"
 
