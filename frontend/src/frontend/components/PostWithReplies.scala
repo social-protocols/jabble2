@@ -121,15 +121,14 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
     }
   }
 
+  val collapseButtonIconName = if (childrenHidden) "chevron-right" else "chevron-down"
+  val collapseButtonTitle    = if (childrenHidden) "Expand this comment" else "Collapse this comment"
+
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
       VMod.when(hasChildren)(
-        if (childrenHidden) {
-          button(slIcon(SlIcon.name := "chevron-right"), title := "Expand this comment", onClick.doAction { toggleHideChildren() })
-        } else {
-          button(slIcon(SlIcon.name := "chevron-down"), title := "Collapse this comment", onClick.doAction { toggleHideChildren() })
-        }
+        button(slIcon(SlIcon.name := collapseButtonIconName), title := collapseButtonTitle, onClick.doAction { toggleHideChildren() })
       ),
       button(
         slIcon(SlIcon.name := upvoteIcon),
