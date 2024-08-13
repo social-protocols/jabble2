@@ -14,7 +14,7 @@ import webcodegen.shoelace.SlIcon.*
 import webcodegen.shoelace.SlIcon
 
 def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VMod = {
-  val hidePost = treeContext.collapsedState.hidePost.getOrElse(postTree.post.id, false)
+  val hidePost     = treeContext.collapsedState.hidePost.getOrElse(postTree.post.id, false)
   val hideChildren = treeContext.collapsedState.hideChildren.getOrElse(postTree.post.id, false)
 
   val postData = treeContext.postTreeDataState.posts(postTree.post.id)
@@ -29,7 +29,7 @@ def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTri
         )
       } else {
         VMod.empty
-      }
+      },
     )
   } else {
     VMod.empty
