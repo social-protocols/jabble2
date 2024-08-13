@@ -118,17 +118,65 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, targetPostId: Long, direction: rpc.Direction): IO[rpc.PostTreeData] = withUser { userId =>
     IO {
       magnum.transact(ds) {
-        val currentVote = getVote(userId, postId)
-        val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
-        val parentId    = db.PostRepo.findById(postId).flatMap(_.parentId)
-        db.VoteEventRepo.insert(
+        val currentVote  = getVote(userId, postId)
+        val newDirection = if (direction == currentVote) rpc.Direction.Neutral else direction
+        val parentId     = db.PostRepo.findById(postId).flatMap(_.parentId)
+        val dbVoteEvent = db.VoteEventRepo.insertReturning(
           db.VoteEvent.Creator(
             userId = userId,
             postId = postId,
-            vote = newState.value,
+            vote = newDirection.value,
             parentId = parentId,
           )
         )
+        val scoreEvents = globalbrain
+          .sendVoteEvents(
+            Vector(
+              globalbrain.VoteEvent(
+                userId = dbVoteEvent.userId,
+                parentId = dbVoteEvent.parentId,
+                postId = dbVoteEvent.postId,
+                vote = newDirection.value,
+                voteEventTime = dbVoteEvent.voteEventTime,
+                voteEventId = dbVoteEvent.voteEventId,
+              )
+            ),
+            httpClient,
+          )
+          .unsafeRunSync() // TODO: real async
+        for (scoreEvent <- scoreEvents) {
+          scoreEvent.score.foreach { score =>
+            insertScoreEvent(
+              db.ScoreEvent.Creator(
+                voteEventId = scoreEvent.voteEventId,
+                voteEventTime = scoreEvent.voteEventTime,
+                postId = score.postId,
+                o = score.o,
+                oCount = score.oCount,
+                oSize = score.oSize,
+                p = score.p,
+                score = score.score,
+              )
+            )
+          }
+          scoreEvent.effect.foreach { effect =>
+            insertEffectEvent(
+              db.EffectEvent.Creator(
+                voteEventId = scoreEvent.voteEventId,
+                voteEventTime = scoreEvent.voteEventTime,
+                postId = effect.postId,
+                commentId = effect.commentId,
+                p = effect.p,
+                pCount = effect.pCount,
+                pSize = effect.pSize,
+                q = effect.q,
+                qCount = effect.qCount,
+                qSize = effect.qSize,
+                r = effect.r,
+              )
+            )
+          }
+        }
         getDbPostTreeData(targetPostId, userId)
       }
     }
