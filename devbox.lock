@@ -97,6 +97,10 @@
         }
       }
     },
+    "cloc": {
+      "resolved": "github:NixOS/nixpkgs/75a52265bda7fd25e06e3a67dee3f0354e73243c#cloc",
+      "source": "nixpkg"
+    },
     "curl@latest": {
       "last_modified": "2024-06-07T15:28:25Z",
       "resolved": "github:NixOS/nixpkgs/d226935fd75012939397c83f6c385e4d6d832288#curl",
