@@ -99,7 +99,17 @@
     },
     "cloc": {
       "resolved": "github:NixOS/nixpkgs/75a52265bda7fd25e06e3a67dee3f0354e73243c#cloc",
-      "source": "nixpkg"
+      "source": "nixpkg",
+      "systems": {
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "path": "/nix/store/9qjj0bcfwf6gjjf6gpczqdfilpyymy29-cloc-1.98",
+              "default": true
+            }
+          ]
+        }
+      }
     },
     "curl@latest": {
       "last_modified": "2024-06-07T15:28:25Z",
@@ -490,50 +500,50 @@
       }
     },
     "mill@latest": {
-      "last_modified": "2024-07-20T00:34:32Z",
-      "resolved": "github:NixOS/nixpkgs/2d65995365a2a6b05db69e344d3b673c8d541bcd#mill",
+      "last_modified": "2024-08-04T20:22:49Z",
+      "resolved": "github:NixOS/nixpkgs/785feb91183a50959823ff9ba9ef673105259cd5#mill",
       "source": "devbox-search",
-      "version": "0.11.9",
+      "version": "0.11.10",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/9hjrpdk08l2x22zb382d5m7yys7fgm04-mill-0.11.9",
+              "path": "/nix/store/0vyfakjfg3x0m0g8nklimkkx051hd9sg-mill-0.11.10",
               "default": true
             }
           ],
-          "store_path": "/nix/store/9hjrpdk08l2x22zb382d5m7yys7fgm04-mill-0.11.9"
+          "store_path": "/nix/store/0vyfakjfg3x0m0g8nklimkkx051hd9sg-mill-0.11.10"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/wwpv13hawfa3zj5if5msksv12wc7y8h6-mill-0.11.9",
+              "path": "/nix/store/6wgdch30g0c54vjh6yz87ncvlz2m8av3-mill-0.11.10",
               "default": true
             }
           ],
-          "store_path": "/nix/store/wwpv13hawfa3zj5if5msksv12wc7y8h6-mill-0.11.9"
+          "store_path": "/nix/store/6wgdch30g0c54vjh6yz87ncvlz2m8av3-mill-0.11.10"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/m52mib7gxjxi4kcwi7yyi8hg8mlx8217-mill-0.11.9",
+              "path": "/nix/store/bdkdy5gwpk7r2kqy13dcawsj42nsbgf2-mill-0.11.10",
               "default": true
             }
           ],
-          "store_path": "/nix/store/m52mib7gxjxi4kcwi7yyi8hg8mlx8217-mill-0.11.9"
+          "store_path": "/nix/store/bdkdy5gwpk7r2kqy13dcawsj42nsbgf2-mill-0.11.10"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/plyr3h2n9xbnin9ikyl1bp12ds41pa17-mill-0.11.9",
+              "path": "/nix/store/ygg1lmyp8vjgl2779dyxi9f9igkmdav6-mill-0.11.10",
               "default": true
             }
           ],
-          "store_path": "/nix/store/plyr3h2n9xbnin9ikyl1bp12ds41pa17-mill-0.11.9"
+          "store_path": "/nix/store/ygg1lmyp8vjgl2779dyxi9f9igkmdav6-mill-0.11.10"
         }
       }
     },
