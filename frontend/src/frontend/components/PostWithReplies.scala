@@ -19,21 +19,17 @@ def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTri
 
   val postData = treeContext.postTreeDataState.posts(postTree.post.id)
 
-  if (!hidePost) {
+  VMod.when(!hidePost)(
     div(
       postDetails(postTree.post, postData, postTree, treeContext, refreshTrigger),
-      if (!hideChildren) {
+      VMod.when(!hideChildren)(
         div(
           postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger) },
           cls := "ml-2 pl-3",
         )
-      } else {
-        VMod.empty
-      },
+      ),
     )
-  } else {
-    VMod.empty
-  }
+  )
 }
 
 def postDetails(
@@ -114,9 +110,7 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
       var newHideChildrenState = treeContext.collapsedState.hideChildren.updated(post.id, false)
       // collapse direct children
       postTree.replies.foreach { reply =>
-        {
-          newHideChildrenState = newHideChildrenState.updated(reply.post.id, true)
-        }
+        newHideChildrenState = newHideChildrenState.updated(reply.post.id, true)
       }
       treeContext.setCollapsedState(treeContext.collapsedState.copy(hideChildren = newHideChildrenState))
     } else {
@@ -130,15 +124,13 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
-      if (hasChildren) {
+      VMod.when(hasChildren)(
         if (childrenHidden) {
           button(slIcon(SlIcon.name := "chevron-right"), title := "Expand this comment", onClick.doAction { toggleHideChildren() })
         } else {
           button(slIcon(SlIcon.name := "chevron-down"), title := "Collapse this comment", onClick.doAction { toggleHideChildren() })
         }
-      } else {
-        VMod.empty
-      },
+      ),
       button(
         slIcon(SlIcon.name := upvoteIcon),
         onClick.doEffect { submitVote(rpc.Direction.Up) },
@@ -156,7 +148,7 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
         },
       ),
       showReplyForm.map { show =>
-        if (show) {
+        VMod.when(show)(
           button(
             "✕",
             cls := "ml-auto self-center pr-2",
@@ -164,13 +156,11 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
               showReplyForm.set(false)
             },
           )
-        } else {
-          VMod.empty
-        }
+        )
       },
     ),
     showReplyForm.map { show =>
-      if (show) {
+      VMod.when(show)(
         div(
           slInput(
             SlInput.placeholder := "Enter your reply",
@@ -187,9 +177,7 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
             },
           ),
         )
-      } else {
-        VMod.empty
-      }
+      )
     },
   )
 }
