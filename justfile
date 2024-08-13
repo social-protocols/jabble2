@@ -38,3 +38,6 @@ ci:
 
 format:
   scalafmt backend frontend rpc
+
+cloc:
+  cloc backend frontend rpc index.html main.js queries.sql query_template.go.tmpl schema.schema.sql schema.sql style.css
