@@ -136,10 +136,7 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
   }
 
   val isDeleted = Var(
-    post.deletedAt match {
-      case Some(_) => true
-      case None    => false
-    }
+    post.deletedAt.isDefined
   )
 
   div(
