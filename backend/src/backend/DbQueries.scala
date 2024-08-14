@@ -80,3 +80,28 @@ def getTransitiveParents(postId: Long)(using con: DbCon): Vector[rpc.Post] = {
   """.query[rpc.Post].run()
   parentThreadWithTargetPost.tail.reverse
 }
+
+def insertScoreEvent(scoreEvent: db.ScoreEvent.Creator)(using con: DbCon): Unit = {
+  // https://github.com/scala/scala3/issues/21383
+  // val scoreEventTable = TableInfo[db.ScoreEvent.Creator, db.ScoreEvent, Long]
+  // sql"""
+  //   INSERT INTO $scoreEventTable ${scoreEventTable.insertColumns} values ($scoreEvent) ON CONFLICT DO NOTHING
+  // """.update.run()
+
+  sql"""
+    INSERT INTO score_event (vote_event_id, vote_event_time ,post_id ,o ,o_count ,o_size ,p ,score) values ($scoreEvent) ON CONFLICT DO NOTHING
+  """.update.run()
+}
+
+def insertEffectEvent(effectEvent: db.EffectEvent.Creator)(using con: DbCon): Unit = {
+  // https://github.com/scala/scala3/issues/21383
+  // val effectEventTable = TableInfo[db.EffectEvent.Creator, db.EffectEvent, Long]
+  // sql"""
+  //    INSERT INTO $effectEventTable ${effectEventTable.insertColumns} values ($effectEvent) ON CONFLICT DO NOTHING
+  //  """.update.run()
+  //
+
+  sql"""
+     INSERT INTO effect_event (vote_event_id, vote_event_time, post_id, comment_id, p, p_count, p_size, q, q_count, q_size, r) values ($effectEvent) ON CONFLICT DO NOTHING
+   """.update.run()
+}

@@ -31,3 +31,4 @@ target/
 metals.sbt
 out/
 /data.db
+/global-brain-data

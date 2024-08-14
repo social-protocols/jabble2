@@ -73,3 +73,11 @@ processes:
         keratin/authn-server:latest \
         sh -c "./authn migrate && ./authn server"
 
+  gbrain:
+    # the image must first be built locally in the GlobalBrain repo using earthly +docker-build
+    command: |
+      docker run --name global-brain --rm -p 8000:8000 \
+        -v ./global-brain-data:/data \
+        -e DATABASE_PATH=/data/global-brain.db \
+        global-brain
+
