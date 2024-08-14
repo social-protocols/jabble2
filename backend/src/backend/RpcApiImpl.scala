@@ -78,26 +78,34 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def createPost(content: String): IO[Unit] = withUser { userId =>
+  def createPost(content: String, withUpvote: Boolean): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
-        db.PostRepo.insert(db.Post.Creator(parentId = None, authorId = userId, content = content))
+        val newPost: rpc.Post =
+          db.PostRepo.insertReturning(db.Post.Creator(parentId = None, authorId = userId, content = content)).to[rpc.Post]
+        if (withUpvote) {
+          submitVote(userId, newPost.id, rpc.Direction.Up)
+        }
       }
     }
   }
 
-  def createReply(parentId: Long, targetPostId: Long, content: String): IO[(rpc.PostTree, rpc.PostTreeData)] = withUser { userId =>
-    IO {
-      magnum.transact(ds) {
-        val newPost: rpc.Post =
-          db.PostRepo.insertReturning(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content)).to[rpc.Post]
-        (
-          rpc.PostTree(newPost, Vector.empty),
-          getDbPostTreeData(targetPostId, userId),
-        )
+  def createReply(parentId: Long, targetPostId: Long, content: String, withUpvote: Boolean): IO[(rpc.PostTree, rpc.PostTreeData)] =
+    withUser { userId =>
+      IO {
+        magnum.transact(ds) {
+          val newPost: rpc.Post =
+            db.PostRepo.insertReturning(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content)).to[rpc.Post]
+          if (withUpvote) {
+            submitVote(userId, newPost.id, rpc.Direction.Up)
+          }
+          (
+            rpc.PostTree(newPost, Vector.empty),
+            getDbPostTreeData(targetPostId, userId),
+          )
+        }
       }
     }
-  }
 
   def getPosts(): IO[Vector[rpc.Post]] = {
     IO {
@@ -118,65 +126,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, targetPostId: Long, direction: rpc.Direction): IO[rpc.PostTreeData] = withUser { userId =>
     IO {
       magnum.transact(ds) {
-        val currentVote = getVote(userId, postId)
-        val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
-        val parentId    = db.PostRepo.findById(postId).flatMap(_.parentId)
-        val dbVoteEvent = db.VoteEventRepo.insertReturning(
-          db.VoteEvent.Creator(
-            userId = userId,
-            postId = postId,
-            vote = newState.value,
-            parentId = parentId,
-          )
-        )
-        val scoreEvents = globalbrain
-          .sendVoteEvents(
-            Vector(
-              globalbrain.VoteEvent(
-                userId = dbVoteEvent.userId,
-                parentId = dbVoteEvent.parentId,
-                postId = dbVoteEvent.postId,
-                vote = newState.value,
-                voteEventTime = dbVoteEvent.voteEventTime,
-                voteEventId = dbVoteEvent.voteEventId,
-              )
-            ),
-            httpClient,
-          )
-          .unsafeRunSync() // TODO: real async
-        for (scoreEvent <- scoreEvents) {
-          scoreEvent.score.foreach { score =>
-            insertScoreEvent(
-              db.ScoreEvent.Creator(
-                voteEventId = scoreEvent.voteEventId,
-                voteEventTime = scoreEvent.voteEventTime,
-                postId = score.postId,
-                o = score.o,
-                oCount = score.oCount,
-                oSize = score.oSize,
-                p = score.p,
-                score = score.score,
-              )
-            )
-          }
-          scoreEvent.effect.foreach { effect =>
-            insertEffectEvent(
-              db.EffectEvent.Creator(
-                voteEventId = scoreEvent.voteEventId,
-                voteEventTime = scoreEvent.voteEventTime,
-                postId = effect.postId,
-                commentId = effect.commentId,
-                p = effect.p,
-                pCount = effect.pCount,
-                pSize = effect.pSize,
-                q = effect.q,
-                qCount = effect.qCount,
-                qSize = effect.qSize,
-                r = effect.r,
-              )
-            )
-          }
-        }
+        submitVote(userId, postId, direction)
         getDbPostTreeData(targetPostId, userId)
       }
     }
