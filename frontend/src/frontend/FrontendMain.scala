@@ -62,6 +62,7 @@ def app: VNode = {
   val refreshTrigger = VarEvent[Unit]()
 
   div(
+    facades.Timeago.format(new scala.scalajs.js.Date(1)),
     cls := "flex flex-col",
     header(
       cls := "flex flex-col w-full px-2 py-2",

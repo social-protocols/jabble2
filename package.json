@@ -15,6 +15,7 @@
   "dependencies": {
     "@shoelace-style/shoelace": "^2.15.1",
     "keratin-authn": "^1.4.1",
-    "snabbdom": "github:outwatch/snabbdom#0.7.5"
+    "snabbdom": "github:outwatch/snabbdom#0.7.5",
+    "timeago.js": "^4.0.2"
   }
 }
