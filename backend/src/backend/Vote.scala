@@ -1,9 +1,7 @@
 package backend
 
-import cats.effect.IO
 import com.augustnagro.magnum
 import com.augustnagro.magnum.*
-import backend.queries
 
 def submitVote(userId: String, postId: Long, direction: rpc.Direction)(using con: DbCon) = {
   val currentVote = getVote(userId, postId)
