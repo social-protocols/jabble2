@@ -33,7 +33,7 @@ def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTri
 }
 
 def postDetails(
-  post: rpc.Post,
+  post: rpc.PostWithScore,
   postData: rpc.PostData,
   postTree: rpc.PostTree,
   treeContext: TreeContext,
@@ -54,7 +54,7 @@ def convincingnessScale(effectSize: Double): String = {
   "🔥".repeat(numberOfFlames)
 }
 
-def postInfoBar(post: rpc.Post, postData: rpc.PostData): VNode = {
+def postInfoBar(post: rpc.PostWithScore, postData: rpc.PostData): VNode = {
   val effectSize: Double = postData.effectOnTargetPost.map(_.effectSizeOnTarget) match {
     case Some(effectSize) => effectSize
     case None =>
@@ -87,7 +87,7 @@ def postInfoBar(post: rpc.Post, postData: rpc.PostData): VNode = {
   )
 }
 
-def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
+def postActionBar(post: rpc.PostWithScore, postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
   val userIsAdmin: IO[Boolean] = lift {
     val isAdmin = unlift(RpcClient.call.getUserProfile().map(_.isAdmin))
     if (isAdmin == 1) true else false
@@ -135,9 +135,8 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
     )
   }
 
-  val isDeleted = Var(
-    post.deletedAt.isDefined
-  )
+  // TODO: get from post data state
+  val isDeleted = Var(post.deletedAt.isDefined)
 
   div(
     div(

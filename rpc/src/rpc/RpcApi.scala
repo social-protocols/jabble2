@@ -36,7 +36,18 @@ case class Post(
   isPrivate: Long, // TODO: convert to boolean when reading from database
 ) derives ReadWriter
 
-case class PostTree(post: Post, replies: Vector[PostTree]) derives ReadWriter:
+case class PostWithScore(
+  id: Long,
+  parentId: Option[Long],
+  authorId: String,
+  content: String,
+  createdAt: Long,
+  deletedAt: Option[Long],
+  isPrivate: Long, // TODO: convert to boolean when reading from database
+  score: Double,
+) derives ReadWriter
+
+case class PostTree(post: PostWithScore, replies: Vector[PostTree]) derives ReadWriter:
   def insert(comment: PostTree): PostTree = {
     if (comment.post.parentId.exists(_ == post.id)) {
       copy(replies = comment +: replies)
@@ -59,6 +70,17 @@ case class Effect(
 ) derives ReadWriter:
   lazy val effectSizeOnTarget: Double = relativeEntropy(p, q) * pSize
 
+case class Score(
+  postId: Long,
+  voteEventId: Long,
+  voteEventTime: Long,
+  o: Double,
+  oCount: Long,
+  oSize: Long,
+  p: Double,
+  score: Double,
+) derives ReadWriter
+
 def relativeEntropy(p: Double, q: Double): Double = {
   val logP    = if (p == 0.0) 0.0 else log(p)
   val logNotP = if (p == 1.0) 0.0 else log(1.0 - p)
@@ -67,11 +89,17 @@ def relativeEntropy(p: Double, q: Double): Double = {
   p * (logP - logQ) + (1.0 - p) * (logNotP - logNotQ)
 }
 
+def effectSizeOnTarget(effectOnTarget: Option[Effect]): Double = {
+  val targetP     = effectOnTarget.map(_.p).getOrElse(0.0)
+  val targetQ     = effectOnTarget.map(_.q).getOrElse(0.0)
+  val targetPSize = effectOnTarget.map(_.pSize).getOrElse(0L).toDouble
+  relativeEntropy(targetP, targetQ) * targetPSize
+}
+
 case class PostData(
   postId: Long,
   userVote: Direction,
   voteCount: Long,
-  p: Option[Long],
   effectOnTargetPost: Option[Effect],
   isDeleted: Boolean,
 ) derives ReadWriter

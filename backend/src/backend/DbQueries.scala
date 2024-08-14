@@ -4,12 +4,24 @@ import com.augustnagro.magnum
 import com.augustnagro.magnum.*
 import io.github.arainko.ducktape.*
 
-def getRecursiveComments(postId: Long)(using con: DbCon): Option[rpc.PostTree] = {
-  val post = db.PostRepo.findById(postId)
+def getRecursivePostTree(postId: Long, postTreeData: rpc.PostTreeData)(using con: DbCon): Option[rpc.PostTree] = {
+  val post = getPostWithScore(postId)
   post.map { post =>
     val replyIds = queries.getReplyIds(postId)
-    val replies  = replyIds.flatMap(getRecursiveComments)
-    rpc.PostTree(post.to[rpc.Post], replies)
+    val replies = replyIds
+      .flatMap((replyId: Long) => getRecursivePostTree(replyId, postTreeData))
+      .sortWith((a, b) => {
+        val effectA = postTreeData.posts(a.post.id).effectOnTargetPost
+        val effectB = postTreeData.posts(b.post.id).effectOnTargetPost
+
+        val effectSizeA = rpc.effectSizeOnTarget(effectA)
+        val effectSizeB = rpc.effectSizeOnTarget(effectB)
+
+        val tieBreaker = (b.post.score - a.post.score) > 0
+
+        if (effectSizeB != effectSizeA) (effectSizeB - effectSizeA) > 0 else tieBreaker
+      })
+    rpc.PostTree(post, replies)
   }
 }
 
@@ -41,8 +53,7 @@ def getDbPostTreeData(targetPostId: Long, userId: String)(using con: DbCon): rpc
         post.id,
         getVote(userId, post.id),
         queries.getVoteCount(post.id),
-        None, // TODO: actual informed probability
-        None, // TODO: actual effectOnTargetPost
+        getEffect(targetPostId, post.id),
         post.deletedAt.isDefined,
       )
     }.toMap,
@@ -104,4 +115,40 @@ def insertEffectEvent(effectEvent: db.EffectEvent.Creator)(using con: DbCon): Un
   sql"""
      INSERT INTO effect_event (vote_event_id, vote_event_time, post_id, comment_id, p, p_count, p_size, q, q_count, q_size, r) values ($effectEvent) ON CONFLICT DO NOTHING
    """.update.run()
+}
+
+def getEffect(postId: Long, commentId: Long)(using con: DbCon): Option[rpc.Effect] = {
+  sql"""
+    select
+      post_id
+      , comment_id
+      , p
+      , p_count
+      , p_size
+      , q
+      , q_count
+      , q_size
+      , r
+      , weight
+    from effect
+    where post_id = ${postId}
+    and comment_id = ${commentId}
+  """.query[rpc.Effect].run().headOption
+}
+
+def getPostWithScore(postId: Long)(using con: DbCon): Option[rpc.PostWithScore] = {
+  sql"""
+    select
+      id
+      , parent_id
+      , author_id
+      , content
+      , created_at
+      , deleted_at
+      , is_private
+      , score
+    from post
+    join score_with_default on post.id = score.post_id
+    where post_id = ${postId}
+  """.query[rpc.PostWithScore].run().headOption
 }
