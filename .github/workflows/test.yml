@@ -42,4 +42,4 @@ jobs:
         version: ${{ env.EARTHLY_VERSION }}
 
     - name: Test
-      run: earthly --allow-privileged --no-output +ci-test
+      run: earthly --verbose --allow-privileged --no-output +ci-test

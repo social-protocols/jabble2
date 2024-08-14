@@ -4,7 +4,7 @@ import colibri.reactive.*
 import outwatch.*
 import outwatch.dsl.*
 import frontend.RpcClient
-import webcodegen.shoelace.SlButton.{title as _, value as _, *}
+import webcodegen.shoelace.SlButton.{href as _, title as _, value as _, *}
 import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{title as _, value as _, *}
 import webcodegen.shoelace.SlInput
@@ -41,7 +41,7 @@ def postDetails(
 ): VNode = {
   div(
     postInfoBar(post, postData),
-    post.content,
+    a(post.content, href := s"/#post/${post.id}"),
     postActionBar(post, postTree, treeContext, refreshTrigger),
     cls := "mb-4",
   )
@@ -183,7 +183,7 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
             "Reply",
             onClick(contentState).foreachEffect { content =>
               lift {
-                unlift(RpcClient.call.createReply(post.id, treeContext.targetPostId, content))
+                unlift(RpcClient.call.createReply(post.id, treeContext.targetPostId, content, true))
                 refreshTrigger.set(())
               }
             },

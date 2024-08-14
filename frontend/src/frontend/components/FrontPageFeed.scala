@@ -4,7 +4,7 @@ import colibri.reactive.*
 import outwatch.*
 import outwatch.dsl.*
 import frontend.RpcClient
-import webcodegen.shoelace.SlButton.{value as _, *}
+import webcodegen.shoelace.SlButton.{href as _, value as _, *}
 import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{value as _, *}
 import webcodegen.shoelace.SlInput
@@ -26,7 +26,7 @@ def frontPagePost(postId: Long, content: String, authorId: String, refreshTrigge
 
   div(
     div("by: ", authorId, color := "grey"),
-    content,
+    a(content, href := s"/#post/${postId}"),
     div(
       slInput(
         SlInput.placeholder := "Reply",
@@ -37,7 +37,7 @@ def frontPagePost(postId: Long, content: String, authorId: String, refreshTrigge
         "Reply",
         onClick(contentState).foreachEffect { content =>
           lift {
-            unlift(RpcClient.call.createReply(postId, postId, content))
+            unlift(RpcClient.call.createReply(postId, postId, content, true))
             refreshTrigger.set(())
           }
         },
