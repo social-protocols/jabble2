@@ -84,7 +84,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
         val newPost: rpc.Post =
           db.PostRepo.insertReturning(db.Post.Creator(parentId = None, authorId = userId, content = content)).to[rpc.Post]
         if (withUpvote) {
-          submitVote(userId, newPost.id, rpc.Direction.Up)
+          submitVote(userId, newPost.id, rpc.Direction.Up, httpClient)
         }
       }
     }
@@ -97,7 +97,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
           val newPost: rpc.Post =
             db.PostRepo.insertReturning(db.Post.Creator(parentId = Some(parentId), authorId = userId, content = content)).to[rpc.Post]
           if (withUpvote) {
-            submitVote(userId, newPost.id, rpc.Direction.Up)
+            submitVote(userId, newPost.id, rpc.Direction.Up, httpClient)
           }
           (
             rpc.PostTree(newPost, Vector.empty),
@@ -126,7 +126,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, targetPostId: Long, direction: rpc.Direction): IO[rpc.PostTreeData] = withUser { userId =>
     IO {
       magnum.transact(ds) {
-        submitVote(userId, postId, direction)
+        submitVote(userId, postId, direction, httpClient)
         getDbPostTreeData(targetPostId, userId)
       }
     }

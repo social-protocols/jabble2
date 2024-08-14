@@ -2,12 +2,15 @@ package backend
 
 import com.augustnagro.magnum
 import com.augustnagro.magnum.*
+import org.http4s.client.Client
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global // TODO
 
-def submitVote(userId: String, postId: Long, direction: rpc.Direction)(using con: DbCon) = {
+def submitVote(userId: String, postId: Long, direction: rpc.Direction, httpClient: Client[IO])(using con: DbCon) = {
   val currentVote = getVote(userId, postId)
   val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
   val parentId    = db.PostRepo.findById(postId).flatMap(_.parentId)
-  db.VoteEventRepo.insert(
+  val dbVoteEvent = db.VoteEventRepo.insertReturning(
     db.VoteEvent.Creator(
       userId = userId,
       postId = postId,
@@ -15,4 +18,52 @@ def submitVote(userId: String, postId: Long, direction: rpc.Direction)(using con
       parentId = parentId,
     )
   )
+  val scoreEvents = globalbrain
+    .sendVoteEvents(
+      Vector(
+        globalbrain.VoteEvent(
+          userId = dbVoteEvent.userId,
+          parentId = dbVoteEvent.parentId,
+          postId = dbVoteEvent.postId,
+          vote = newState.value,
+          voteEventTime = dbVoteEvent.voteEventTime,
+          voteEventId = dbVoteEvent.voteEventId,
+        )
+      ),
+      httpClient,
+    )
+    .unsafeRunSync() // TODO: real async
+  for (scoreEvent <- scoreEvents) {
+    scoreEvent.score.foreach { score =>
+      insertScoreEvent(
+        db.ScoreEvent.Creator(
+          voteEventId = scoreEvent.voteEventId,
+          voteEventTime = scoreEvent.voteEventTime,
+          postId = score.postId,
+          o = score.o,
+          oCount = score.oCount,
+          oSize = score.oSize,
+          p = score.p,
+          score = score.score,
+        )
+      )
+    }
+    scoreEvent.effect.foreach { effect =>
+      insertEffectEvent(
+        db.EffectEvent.Creator(
+          voteEventId = scoreEvent.voteEventId,
+          voteEventTime = scoreEvent.voteEventTime,
+          postId = effect.postId,
+          commentId = effect.commentId,
+          p = effect.p,
+          pCount = effect.pCount,
+          pSize = effect.pSize,
+          q = effect.q,
+          qCount = effect.qCount,
+          qSize = effect.qSize,
+          r = effect.r,
+        )
+      )
+    }
+  }
 }
