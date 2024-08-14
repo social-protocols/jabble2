@@ -70,6 +70,14 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
+  def getUserProfile(): IO[rpc.UserProfile] = withUser { userId =>
+    IO {
+      magnum.connect(ds) {
+        db.UserProfileRepo.findById(userId).map(_.to[rpc.UserProfile]).getOrElse(throw Exception(s"User $userId not found"))
+      }
+    }
+  }
+
   def increment(x: Int): IO[Int] = IO.pure(x + 1)
   def incrementAuthorized(x: Int): IO[Int] = withUser { user =>
     lift {
@@ -140,6 +148,18 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     IO {
       magnum.connect(ds) {
         getTransitiveParents(targetPostId)
+      }
+    }
+  }
+
+  def setDeletedAt(postId: Long, deletedAt: Option[Long]): IO[Unit] = withUser { userId =>
+    IO {
+      magnum.connect(ds) {
+        checkIsAdminOrThrow(userId)
+        val existingPost = db.PostRepo.findById(postId)
+        existingPost.map { post =>
+          db.PostRepo.update(post.copy(deletedAt = deletedAt))
+        }.getOrElse(throw Exception(s"Cannot delete post: Post $postId not found"))
       }
     }
   }

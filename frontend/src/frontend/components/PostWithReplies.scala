@@ -88,6 +88,11 @@ def postInfoBar(post: rpc.Post, postData: rpc.PostData): VNode = {
 }
 
 def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
+  val userIsAdmin: IO[Boolean] = lift {
+    val isAdmin = unlift(RpcClient.call.getUserProfile().map(_.isAdmin))
+    if (isAdmin == 1) true else false
+  }
+
   val contentState = Var("")
 
   val showReplyForm = Var(false)
@@ -130,6 +135,13 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
     )
   }
 
+  val isDeleted = Var(
+    post.deletedAt match {
+      case Some(_) => true
+      case None    => false
+    }
+  )
+
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
@@ -152,6 +164,33 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
           showReplyForm.update(!_)
         },
       ),
+      userIsAdmin.map { isAdmin =>
+        VMod.when(isAdmin)(
+          isDeleted.map { deleted =>
+            if (deleted) {
+              button(
+                "restore",
+                onClick.doEffect {
+                  lift {
+                    unlift(RpcClient.call.setDeletedAt(post.id, None))
+                    isDeleted.set(false)
+                  }
+                },
+              )
+            } else {
+              button(
+                "delete",
+                onClick.doEffect {
+                  lift {
+                    unlift(RpcClient.call.setDeletedAt(post.id, Some(System.currentTimeMillis())))
+                    isDeleted.set(true)
+                  }
+                },
+              )
+            }
+          }
+        )
+      },
       VMod.when(childrenHidden && postTree.replies.size > 0)(
         button(
           cls := "shrink-0",
