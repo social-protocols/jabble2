@@ -19,7 +19,7 @@ object HttpServer {
   def start(config: AppConfig): IO[Unit] = asyncScope[IO] {
     val routes =
       ServerRoutes.rpcRoutes(config) <+>
-        ServerRoutes.fileRoutes(config) // TODO: serve files only in production, because in dev there is no frontendDistributionPath
+        ServerRoutes.fileRoutes(config)
 
     def errorHandler(t: Throwable, msg: => String): IO[Unit] =
       IO.println(msg) >> IO.println(t) >> IO(t.printStackTrace())
