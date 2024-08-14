@@ -124,6 +124,12 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
   val collapseButtonIconName = if (childrenHidden) "chevron-right" else "chevron-down"
   val collapseButtonTitle    = if (childrenHidden) "Expand this comment" else "Collapse this comment"
 
+  def showChildren() = {
+    treeContext.setCollapsedState(
+      treeContext.collapsedState.copy(hideChildren = treeContext.collapsedState.hideChildren.updated(post.id, false))
+    )
+  }
+
   div(
     div(
       cls := "flex w-full flex-wrap items-start gap-3 text-xl opacity-50 sm:text-base",
@@ -145,6 +151,13 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
         onClick.doAction {
           showReplyForm.update(!_)
         },
+      ),
+      VMod.when(childrenHidden && postTree.replies.size > 0)(
+        button(
+          cls := "shrink-0",
+          s"${postTree.replies.size} " + (if (postTree.replies.size == 1) "comment" else "comments"),
+          onClick.doAction { showChildren() },
+        )
       ),
       showReplyForm.map { show =>
         VMod.when(show)(
