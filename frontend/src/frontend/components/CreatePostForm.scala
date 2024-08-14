@@ -22,7 +22,7 @@ def createPostForm(refreshTrigger: VarEvent[Unit]) = {
       "Post",
       onClick(contentState).foreachEffect { content =>
         lift {
-          unlift(RpcClient.call.createPost(content = content))
+          unlift(RpcClient.call.createPost(content, true))
           refreshTrigger.set(())
         }
       },

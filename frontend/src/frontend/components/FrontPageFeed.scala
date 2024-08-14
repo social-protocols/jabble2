@@ -37,7 +37,7 @@ def frontPagePost(postId: Long, content: String, authorId: String, refreshTrigge
         "Reply",
         onClick(contentState).foreachEffect { content =>
           lift {
-            unlift(RpcClient.call.createReply(postId, postId, content))
+            unlift(RpcClient.call.createReply(postId, postId, content, true))
             refreshTrigger.set(())
           }
         },

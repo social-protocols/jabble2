@@ -170,7 +170,7 @@ def postActionBar(post: rpc.Post, postTree: rpc.PostTree, treeContext: TreeConte
             "Reply",
             onClick(contentState).foreachEffect { content =>
               lift {
-                unlift(RpcClient.call.createReply(post.id, treeContext.targetPostId, content))
+                unlift(RpcClient.call.createReply(post.id, treeContext.targetPostId, content, true))
                 refreshTrigger.set(())
               }
             },
