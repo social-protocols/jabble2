@@ -18,7 +18,7 @@ def submitVote(userId: String, postId: Long, direction: rpc.Direction, httpClien
       parentId = parentId,
     )
   )
-  val scoreEvents = globalbrain
+  val updateScoreOrEffectEvents = globalbrain
     .sendVoteEvents(
       Vector(
         globalbrain.VoteEvent(
@@ -33,12 +33,12 @@ def submitVote(userId: String, postId: Long, direction: rpc.Direction, httpClien
       httpClient,
     )
     .unsafeRunSync() // TODO: real async
-  for (scoreEvent <- scoreEvents) {
-    scoreEvent.score.foreach { score =>
+  for (updateScoreOrEffectEvent <- updateScoreOrEffectEvents) {
+    updateScoreOrEffectEvent.score.foreach { score =>
       insertScoreEvent(
         db.ScoreEvent.Creator(
-          voteEventId = scoreEvent.voteEventId,
-          voteEventTime = scoreEvent.voteEventTime,
+          voteEventId = updateScoreOrEffectEvent.voteEventId,
+          voteEventTime = updateScoreOrEffectEvent.voteEventTime,
           postId = score.postId,
           o = score.o,
           oCount = score.oCount,
@@ -48,11 +48,11 @@ def submitVote(userId: String, postId: Long, direction: rpc.Direction, httpClien
         )
       )
     }
-    scoreEvent.effect.foreach { effect =>
+    updateScoreOrEffectEvent.effect.foreach { effect =>
       insertEffectEvent(
         db.EffectEvent.Creator(
-          voteEventId = scoreEvent.voteEventId,
-          voteEventTime = scoreEvent.voteEventTime,
+          voteEventId = updateScoreOrEffectEvent.voteEventId,
+          voteEventTime = updateScoreOrEffectEvent.voteEventTime,
           postId = effect.postId,
           commentId = effect.commentId,
           p = effect.p,

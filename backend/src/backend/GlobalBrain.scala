@@ -17,7 +17,7 @@ case class VoteEvent(
   @key("vote_event_id") voteEventId: Long,
 ) derives ReadWriter
 
-case class ScoreEvent(
+case class UpdateScoreOrEffectEvent(
   @key("vote_event_id") voteEventId: Long,
   @key("vote_event_time") voteEventTime: Long,
   @key("score") score: Option[Score] = None,
@@ -46,7 +46,7 @@ case class Effect(
   @key("weight") weight: Double,
 ) derives ReadWriter
 
-def sendVoteEvents(events: Vector[VoteEvent], httpClient: Client[IO]): IO[Vector[ScoreEvent]] = lift {
+def sendVoteEvents(events: Vector[VoteEvent], httpClient: Client[IO]): IO[Vector[UpdateScoreOrEffectEvent]] = lift {
   val result = unlift(
     httpClient.expect[String](
       Request[IO](
@@ -55,5 +55,5 @@ def sendVoteEvents(events: Vector[VoteEvent], httpClient: Client[IO]): IO[Vector
       ).withEntity(write(events))
     )
   )
-  read[Vector[ScoreEvent]](result)
+  read[Vector[UpdateScoreOrEffectEvent]](result)
 }
