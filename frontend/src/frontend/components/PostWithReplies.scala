@@ -4,7 +4,7 @@ import colibri.reactive.*
 import outwatch.*
 import outwatch.dsl.*
 import frontend.RpcClient
-import webcodegen.shoelace.SlButton.{title as _, value as _, *}
+import webcodegen.shoelace.SlButton.{href as _, title as _, value as _, *}
 import webcodegen.shoelace.SlButton
 import webcodegen.shoelace.SlInput.{title as _, value as _, *}
 import webcodegen.shoelace.SlInput
@@ -41,7 +41,7 @@ def postDetails(
 ): VNode = {
   div(
     postInfoBar(post, postData),
-    post.content,
+    a(post.content, href := s"/#post/${post.id}"),
     postActionBar(post, postTree, treeContext, refreshTrigger),
     cls := "mb-4",
   )
