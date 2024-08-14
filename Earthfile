@@ -15,6 +15,10 @@ devbox:
   COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} devbox.lock devbox.lock
   RUN devbox run -- echo "Installed Packages."
 
+  USER root:root
+  RUN apt-get update && apt-get -y install curl
+  USER ${DEVBOX_USER}:${DEVBOX_USER}
+
 test-migrations:
   FROM +devbox
   WORKDIR /code
@@ -116,9 +120,19 @@ app-deploy:
 scalafmt:
   FROM +devbox
   WORKDIR /code
-  CACHE --chmod 0777 --id coursier /home/devbox/.cache/coursier
-  COPY --dir .scalafmt.conf backend frontend rpc ./
-  RUN devbox run -- scalafmt --check
+  COPY .scalafmt.conf ./
+
+  # https://scalameta.org/scalafmt/docs/installation.html#native-image
+  USER root:root
+  ENV VERSION=$(awk -F'"' '/version/ {print $2; exit}' .scalafmt.conf)
+  ENV INSTALL_LOCATION=/usr/local/bin/scalafmt-native
+  RUN curl https://raw.githubusercontent.com/scalameta/scalafmt/master/bin/install-scalafmt-native.sh \
+      | bash -s -- $VERSION $INSTALL_LOCATION \
+   && $INSTALL_LOCATION --version
+  USER ${DEVBOX_USER}:${DEVBOX_USER}
+
+  COPY --dir backend frontend rpc ./
+  RUN scalafmt-native --check
 
 lint:
   BUILD +scalafmt
