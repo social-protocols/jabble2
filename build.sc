@@ -10,7 +10,7 @@ import mill.scalajslib._
 import mill.scalajslib.api._
 
 trait AppScalaModule extends ScalaModule {
-  def scalaVersion = "3.4.1"
+  def scalaVersion = "3.4.2"
   val versions = new {
     val authn    = "0.1.3"
     val colibri  = "0.8.4"
@@ -97,7 +97,7 @@ object rpc extends Module {
   trait SharedModule extends AppScalaModule with AppScalacOptions with PlatformScalaModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.github.cornerman::sloth::${versions.sloth}", // rpc
-      ivy"com.lihaoyi::upickle::3.3.1",                    // json and msgpack
+      ivy"com.lihaoyi::upickle::4.0.0",                    // json and msgpack
     )
   }
   object jvm extends SharedModule

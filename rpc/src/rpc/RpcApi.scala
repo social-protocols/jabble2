@@ -80,7 +80,7 @@ case class VoteEvent(
   vote: Long,
   voteEventTime: Long,
   parentId: Option[Long],
-)
+) derives ReadWriter
 
 case class Vote(
   userId: String,
