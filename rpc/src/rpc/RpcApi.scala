@@ -7,6 +7,7 @@ import scala.math.log
 trait RpcApi {
   def register(username: String, password: String): IO[Unit]
   def getUsername(): IO[String]
+  def getUserProfile(): IO[UserProfile]
   def increment(x: Int): IO[Int]
   def incrementAuthorized(x: Int): IO[Int]
   def createPost(content: String, withUpvote: Boolean): IO[Unit]
@@ -16,7 +17,14 @@ trait RpcApi {
   def vote(postId: Long, targetPostId: Long, direction: Direction): IO[PostTreeData]
   def getPostTreeData(targetPostId: Long): IO[PostTreeData]
   def getParentThread(targetPostId: Long): IO[Vector[Post]]
+  def setDeletedAt(postId: Long, deletedAt: Option[Long]): IO[Unit]
 }
+
+case class UserProfile(
+  userId: String,
+  userName: String,
+  isAdmin: Long, // TODO: convert to boolean when reading from database
+) derives ReadWriter
 
 case class Post(
   id: Long,
