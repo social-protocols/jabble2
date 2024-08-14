@@ -36,6 +36,7 @@ test-generate-query-code:
 build-mill:
   FROM +devbox
   WORKDIR /code
+  CACHE --chmod 0777 out # mill build folder
   COPY +build-node-modules/node_modules/@shoelace-style/shoelace/dist ./node_modules/@shoelace-style/shoelace/dist
   ENV CI=true
   COPY build.sc schema.sql schema.scala.ssp ./
@@ -46,8 +47,12 @@ build-mill:
   RUN devbox run -- mill backend.assembly
   COPY --dir frontend ./
   RUN devbox run -- mill frontend.fullLinkJS
-  SAVE ARTIFACT out/backend/assembly.dest/out.jar backend.jar
-  SAVE ARTIFACT out/frontend/fullLinkJS.dest frontend
+
+  # copy artifacts out of cached (not persisted) `out` folder
+  RUN cp out/backend/assembly.dest/out.jar dist-backend.jar \
+   && cp -a out/frontend/fullLinkJS.dest dist-frontend
+  SAVE ARTIFACT dist-backend.jar backend.jar
+  SAVE ARTIFACT dist-frontend frontend
 
 build-node-modules:
   FROM +devbox
@@ -60,7 +65,7 @@ build-vite:
   FROM +devbox
   WORKDIR /code
   COPY --dir +build-node-modules/node_modules ./
-  COPY +build-mill/frontend ./out/frontend/fullLinkJS.dest
+  COPY --dir +build-mill/frontend ./out/frontend/fullLinkJS.dest
   COPY --dir main.js index.html vite.config.mts tailwind.config.js postcss.config.js style.css public ./
   RUN devbox run -- bunx vite build
   SAVE ARTIFACT --keep-ts dist # timestamps must be kept for browser caching
