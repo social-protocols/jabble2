@@ -118,14 +118,14 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   def vote(postId: Long, targetPostId: Long, direction: rpc.Direction): IO[rpc.PostTreeData] = withUser { userId =>
     IO {
       magnum.transact(ds) {
-        val currentVote  = getVote(userId, postId)
-        val newDirection = if (direction == currentVote) rpc.Direction.Neutral else direction
-        val parentId     = db.PostRepo.findById(postId).flatMap(_.parentId)
+        val currentVote = getVote(userId, postId)
+        val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
+        val parentId    = db.PostRepo.findById(postId).flatMap(_.parentId)
         val dbVoteEvent = db.VoteEventRepo.insertReturning(
           db.VoteEvent.Creator(
             userId = userId,
             postId = postId,
-            vote = newDirection.value,
+            vote = newState.value,
             parentId = parentId,
           )
         )
@@ -136,7 +136,7 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
                 userId = dbVoteEvent.userId,
                 parentId = dbVoteEvent.parentId,
                 postId = dbVoteEvent.postId,
-                vote = newDirection.value,
+                vote = newState.value,
                 voteEventTime = dbVoteEvent.voteEventTime,
                 voteEventId = dbVoteEvent.voteEventId,
               )
