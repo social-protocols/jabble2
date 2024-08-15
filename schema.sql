@@ -171,4 +171,32 @@ begin
   );
 end;
 
+create view score_with_default as
+select
+    post.id as post_id
+    , ifnull(o,0.5) o
+    , ifnull(o_count,0) o_count
+    , ifnull(o_size,0) o_size
+    , ifnull(score.p, 0.5) p
+    , ifnull(score,0) score
+from post
+left join score
+on post.id = score.post_id;
 
+create view effect_with_default as
+select
+   ancestor_id as post_id
+   , descendant_id as comment_id
+   , s.p
+   , coalesce(effect.p_count, s.o_count, 0) p_count
+   , coalesce(effect.p_size, s.o_count, 0) p_size
+   , coalesce(effect.q, s.o, 0.5) q
+   , coalesce(effect.q_count, s.o_count, 0.5) q_count
+   , coalesce(effect.q_size, s.o_size, 0.5) q_size
+   , coalesce(effect.r, s.o, 0.5) r
+from score_with_default s
+join lineage
+  on ancestor_id = s.post_id
+left join effect
+  on effect.comment_id = ancestor_id
+  and effect.post_id = descendant_id;

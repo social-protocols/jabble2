@@ -107,10 +107,14 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
           if (withUpvote) {
             submitVote(userId, newPost.id, rpc.Direction.Up, httpClient)
           }
-          (
-            rpc.PostTree(newPost, Vector.empty),
-            getDbPostTreeData(targetPostId, userId),
-          )
+          getPostWithScore(newPost.id) match {
+            case Some(post) =>
+              (
+                rpc.PostTree(post, Vector.empty),
+                getDbPostTreeData(targetPostId, userId),
+              )
+            case None => throw Exception(s"New reply to $parentId couldn't be created")
+          }
         }
       }
     }
@@ -123,10 +127,11 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def getPostTree(rootPostId: Long): IO[Option[rpc.PostTree]] = {
+  def getPostTree(rootPostId: Long): IO[Option[rpc.PostTree]] = withUser { userId =>
     IO {
       magnum.transact(ds) {
-        getRecursiveComments(rootPostId)
+        val postTreeData = getDbPostTreeData(rootPostId, userId)
+        getRecursivePostTree(rootPostId, postTreeData)
       }
     }
   }
