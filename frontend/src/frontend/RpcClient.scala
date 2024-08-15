@@ -10,8 +10,7 @@ object RpcClient {
   import chameleon.ext.upickle.given // TODO: Option as null
 
   private val headers: IO[Map[String, String]] = lift {
-    val client = AuthnClient[IO](AuthnClientConfig("http://localhost:3000"))
-    unlift(client.session).map(token => "Authorization" -> s"Bearer $token").toMap
+    unlift(authnClient.session).map(token => "Authorization" -> s"Bearer $token").toMap
   }
 
   private val httpConfig    = headers.map(headers => HttpRequestConfig(headers = headers))

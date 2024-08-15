@@ -15,6 +15,7 @@ import colibri.router.*
 import frontend.components.*
 import webcodegen.shoelace.SlIcon.{name as _, *}
 import webcodegen.shoelace.SlIcon
+import rpc.UserProfile
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
@@ -40,9 +41,11 @@ def pathToPage(path: Path): Page = path match {
 }
 
 object Main extends IOApp.Simple {
+  val userProfile: IO[Option[rpc.UserProfile]] = RpcClient.call.getUserProfile()
+  val appComponent: VNode = div(userProfile.map(app))
   def run = lift {
     // render the component into the <div id="app"></div> in index.html
-    unlift(Outwatch.renderReplace[IO]("#app", app, RenderConfig.showError))
+    unlift(Outwatch.renderReplace[IO]("#app", appComponent, RenderConfig.showError))
   }
 }
 
@@ -53,21 +56,26 @@ val authnClient = AuthnClient[IO](
   )
 )
 
-def app: VNode = {
+def app(initialUserProfile: Option[rpc.UserProfile]): VNode = {
+  println(s"app initial $initialUserProfile")
   val page: Var[Page] = {
     val pageSubject: Subject[Page] = Router.path
       .imapSubject[Page](pageToPath)(pathToPage)
     Var.createStateless[Page](RxWriter.observer(pageSubject), Rx.observableSync(pageSubject))
   }
 
+  val userProfile = Var(initialUserProfile)
+
   val refreshTrigger = VarEvent[Unit]()
+  refreshTrigger.foreach(_ => println("refresh"))
 
   div(
-    components.Markdown("**bold** or not"),
     cls := "flex flex-col",
     refreshTrigger.observable
       .prepend(())
       .map(_ =>
+      Rx {
+      println(s"app ${userProfile()}")
         VMod(
           header(
             cls := "flex flex-col w-full px-2 py-2",
@@ -81,7 +89,15 @@ def app: VNode = {
               ),
               div(
                 cls := "flex items-center gap-10 ml-auto",
-                RpcClient.call.getUserProfile().map {
+                              userProfile().map(
+                profile =>
+                  div(
+                    profile.userName,
+                    marginRight := "10px",
+                  )
+              ),
+
+                userProfile().map {
                   case Some(profile) =>
                     VMod(
                       div(profile.userName, marginRight := "10px"),
@@ -115,7 +131,8 @@ def app: VNode = {
               case _             => div("page not found")
             },
           ),
-        ),
+        )
+        }
       ),
   )
 }
@@ -152,13 +169,14 @@ case class CollapsedStatus(
   hideChildren: Map[Long, Boolean],
 )
 
-def postPage(postId: Long, refreshTrigger: VarEvent[Unit]): VMod = lift {
+def postPage(postId: Long, refreshTrigger: VarEvent[Unit], userProfile: Option[rpc.UserProfile]): VMod = lift {
+  println(s"postPage($postId), $userProfile")
   val initialPostTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
   val initialPostTreeData                   = unlift(RpcClient.call.getPostTreeData(postId))
   val parents                               = unlift(RpcClient.call.getParentThread(postId))
 
   initialPostTree match {
-    case Some(tree) => renderPostPage(tree, initialPostTreeData, parents, refreshTrigger)
+    case Some(tree) => renderPostPage(tree, initialPostTreeData, parents, refreshTrigger, userProfile)
     case None       => div(s"Post with id ${postId} not found")
   }
 }
@@ -168,12 +186,15 @@ def renderPostPage(
   initialPostTreeData: rpc.PostTreeData,
   parents: Vector[rpc.Post],
   refreshTrigger: VarEvent[Unit],
+  userProfile: Option[rpc.UserProfile],
 ): VMod = {
+  println("renderPostPage")
   val postTreeState     = Var(initialPostTree)
   val postTreeDataState = Var(initialPostTreeData)
   val collapsedState    = Var(CollapsedStatus(initialPostTreeData.targetPostId, Map(), Map()))
 
   Rx {
+    println("Rx1")
     val treeContext: TreeContext = TreeContext(
       initialPostTreeData.targetPostId,
       postTreeState(),
@@ -185,7 +206,7 @@ def renderPostPage(
 
     div(
       parentThread(parents),
-      postWithReplies(initialPostTree, treeContext, refreshTrigger),
+      postWithReplies(initialPostTree, treeContext, refreshTrigger, userProfile),
       maxWidth := "960px",
       margin := "0 auto",
     )

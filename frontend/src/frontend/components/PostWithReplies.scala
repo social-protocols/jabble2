@@ -14,7 +14,12 @@ import webcodegen.shoelace.SlIcon.*
 import webcodegen.shoelace.SlIcon
 import frontend.facades.Timeago
 
-def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VMod = {
+def postWithReplies(
+  postTree: rpc.PostTree,
+  treeContext: TreeContext,
+  refreshTrigger: VarEvent[Unit],
+  userProfile: Option[rpc.UserProfile],
+): VMod = {
   val hidePost     = treeContext.collapsedState.hidePost.getOrElse(postTree.post.id, false)
   val hideChildren = treeContext.collapsedState.hideChildren.getOrElse(postTree.post.id, false)
 
@@ -22,10 +27,11 @@ def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTri
 
   VMod.when(!hidePost)(
     div(
-      postDetails(postTree.post, postData, postTree, treeContext, refreshTrigger),
+      postDetails(postTree.post, postData, postTree, treeContext, refreshTrigger, userProfile),
       VMod.when(!hideChildren)(
         div(
-          postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger) },
+          postTree.replies.toString,
+          postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger, userProfile) },
           cls := "ml-2 pl-3",
         )
       ),
@@ -39,11 +45,12 @@ def postDetails(
   postTree: rpc.PostTree,
   treeContext: TreeContext,
   refreshTrigger: VarEvent[Unit],
+  userProfile: Option[rpc.UserProfile],
 ): VNode = {
   div(
     postInfoBar(post, postData),
     a(post.content, href := s"/#post/${post.id}"),
-    postActionBar(post, postTree, treeContext, refreshTrigger),
+    postActionBar(post, postTree, treeContext, refreshTrigger, userProfile),
     cls := "mb-4",
   )
 }
@@ -89,8 +96,14 @@ def postInfoBar(post: rpc.PostWithScore, postData: rpc.PostData): VNode = {
   )
 }
 
-def postActionBar(post: rpc.PostWithScore, postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
-  val userIsAdmin: IO[Boolean] = RpcClient.call.getUserProfile().map(_.exists(_.isAdmin == 1))
+def postActionBar(
+  post: rpc.PostWithScore,
+  postTree: rpc.PostTree,
+  treeContext: TreeContext,
+  refreshTrigger: VarEvent[Unit],
+  userProfile: Option[rpc.UserProfile],
+): VNode = {
+  val userIsAdmin: Boolean = userProfile.exists(_.isAdmin == 1)
 
   val contentState = Var("")
 
@@ -159,33 +172,31 @@ def postActionBar(post: rpc.PostWithScore, postTree: rpc.PostTree, treeContext: 
           showReplyForm.update(!_)
         },
       ),
-      userIsAdmin.map { isAdmin =>
-        VMod.when(isAdmin)(
-          isDeleted.map { deleted =>
-            if (deleted) {
-              button(
-                "restore",
-                onClick.doEffect {
-                  lift {
-                    unlift(RpcClient.call.setDeletedAt(post.id, None))
-                    isDeleted.set(false)
-                  }
-                },
-              )
-            } else {
-              button(
-                "delete",
-                onClick.doEffect {
-                  lift {
-                    unlift(RpcClient.call.setDeletedAt(post.id, Some(System.currentTimeMillis())))
-                    isDeleted.set(true)
-                  }
-                },
-              )
-            }
+      VMod.when(userIsAdmin)(
+        isDeleted.map { deleted =>
+          if (deleted) {
+            button(
+              "restore",
+              onClick.doEffect {
+                lift {
+                  unlift(RpcClient.call.setDeletedAt(post.id, None))
+                  isDeleted.set(false)
+                }
+              },
+            )
+          } else {
+            button(
+              "delete",
+              onClick.doEffect {
+                lift {
+                  unlift(RpcClient.call.setDeletedAt(post.id, Some(System.currentTimeMillis())))
+                  isDeleted.set(true)
+                }
+              },
+            )
           }
-        )
-      },
+        }
+      ),
       VMod.when(childrenHidden && postTree.replies.size > 0)(
         button(
           cls := "shrink-0",
