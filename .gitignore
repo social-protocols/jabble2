@@ -30,7 +30,3 @@ dist-ssr
 target/
 metals.sbt
 out/
-/data.db
-/data.db-shm
-/data.db-wal
-/global-brain-data

@@ -83,7 +83,7 @@ build-docker:
   COPY --dir --keep-ts +build-vite/dist ./
   RUN mkdir -p /db
   ENV FRONTEND_DISTRIBUTION_PATH=dist
-  ENV JDBC_URL=jdbc:sqlite:/db/data.db
+  ENV JDBC_URL=jdbc:sqlite:/data/backend.db
   ENV JAVA_OPTS=" \
     -XX:InitialRAMPercentage=95 \
     -XX:MaxRAMPercentage=95"

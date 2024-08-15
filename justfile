@@ -9,7 +9,13 @@ dev-tui:
     process-compose up
 
 db:
-  sqlite3 data.db
+  sqlite3 data/backend.db
+
+reset-db:
+  rm -f data/backend.db
+  rm -f data/authn.db
+  rm -f data/globalbrain.db
+  sqlite3 -init /dev/null data/backend.db < schema.sql
 
 gen-bsp:
     mill mill.bsp.BSP/install
@@ -17,6 +23,10 @@ gen-bsp:
 # creates a new migration by diffing existing migrations against schema.sql
 new-migration name:
   scripts/new-db-migration-atlas "{{name}}"
+
+# migrate the dev database to reflect changes in schema.sql without losing data
+migrate-dev:
+  scripts/dev-db-migration-atlas
 
 # checks if migrations produce the same schema as in schema.sql
 check-migrations:

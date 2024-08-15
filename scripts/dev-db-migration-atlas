@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+schema_path="./schema.sql"
+dev_db_path="./data/backend.db"
+
+target_db_path=$dev_db_path
+reference_db_path="${schema_path}.db"
+migration_path="${schema_path}.devmigration.sql"
+
+rm -f "${reference_db_path}" "${target_db_path}.schema" "${reference_db_path}.schema" "${migration_path}"
+
+echo "Set up reference database from schema file"
+cat "$schema_path" | sqlite3 -init /dev/null "${reference_db_path}"
+
+echo "Calculate schema diff and generate migration steps"
+atlas schema diff --to="sqlite://${reference_db_path}" --from="sqlite://${target_db_path}" | (grep -v "^Schemas are synced, no changes to be made.$" || true) >"${migration_path}"
+echo "Migration written to: ${migration_path}"
+
+echo "apply migration to dev database"
+
+cat "${migration_path}"
+cat "${migration_path}" | sqlite3 -init /dev/null "${target_db_path}"
+
+echo "Diff the final state after migration with schemacrawler"
+
+schemacrawler --server=sqlite --database=${target_db_path} --command=details --info-level=detailed | grep -v "^generated on" >${target_db_path}.schema
+schemacrawler --server=sqlite --database=${reference_db_path} --command=details --info-level=detailed | grep -v "^generated on" >${reference_db_path}.schema
+
+GIT_PAGER=cat git diff --no-index -U5 ${reference_db_path}.schema ${target_db_path}.schema && echo "All good. Migrations produce the desired schema!" || exitCode=$?
+
+rm "${reference_db_path}" "${target_db_path}.schema" "${reference_db_path}.schema" "${migration_path}"
+
+exit $exitCode
