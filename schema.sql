@@ -2,7 +2,7 @@ create table user_profile(
   user_id text not null primary key
   , user_name text not null
   -- created_at integer not null default (unixepoch('subsec')*1000) -- TODO
-  -- is_admin integer not null default false -- TODO
+  , is_admin integer not null default false
 ) strict;
 
 create table post(
