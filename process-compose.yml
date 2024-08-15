@@ -52,21 +52,21 @@ processes:
     # TODO: isolate and report bug
     command: find rpc | entr -np bash -c 'echo "cleaning rpc... (incremental compilation workaround)"; mill clean "{rpc,frontend,backend}"; touch rpc/src/rpc/RpcApi.scala'
 
-  seed:
-    command: echo schema.sql | entr -n bash -c "echo seeding database...; rm -f data.db; sqlite3 -init /dev/null data.db < schema.sql && echo success."
+  db:
+    command: echo schema.sql | entr -n scripts/dev-db-migration-atlas
 
   auth:
     command: |
       # https://github.com/keratin/authn-server/tree/main/docs#readme
-      docker volume rm authn-data
       docker run --name authn --rm -p 3000:3000 -p 3001:3001 \
-        -v authn-data:/data \
+        --user $(id -u):$(id -g) \
+        -v ./data:/data \
+        -e DATABASE_URL="sqlite3://localhost//data/authn.db" \
         -e APP_DOMAINS="localhost" \
         -e AUTHN_URL="http://localhost:3000" \
         -e PORT=3001 \
         -e PUBLIC_PORT=3000 \
         -e SECRET_KEY_BASE="test" \
-        -e DATABASE_URL="sqlite3://localhost//data/authn.db" \
         -e ENABLE_SIGNUP=false \
         -e HTTP_AUTH_USERNAME="admin" \
         -e HTTP_AUTH_PASSWORD="adminpw" \
@@ -77,7 +77,8 @@ processes:
     # the image must first be built locally in the GlobalBrain repo using earthly +docker-build
     command: |
       docker run --name global-brain --rm -p 8000:8000 \
-        -v ./global-brain-data:/data \
-        -e DATABASE_PATH=/data/global-brain.db \
+        --user $(id -u):$(id -g) \
+        -v ./data:/data \
+        -e DATABASE_PATH=/data/globalbrain.db \
         global-brain
 
