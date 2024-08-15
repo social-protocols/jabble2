@@ -78,14 +78,6 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     }
   }
 
-  def increment(x: Int): IO[Int] = IO.pure(x + 1)
-  def incrementAuthorized(x: Int): IO[Int] = withUser { user =>
-    lift {
-      println(s"user $user incremented")
-      x + 1
-    }
-  }
-
   def createPost(content: String, withUpvote: Boolean): IO[Unit] = withUser { userId =>
     IO {
       magnum.connect(ds) {
