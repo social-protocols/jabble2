@@ -8,8 +8,6 @@ trait RpcApi {
   def register(username: String, password: String): IO[Unit]
   def getUsername(): IO[String]
   def getUserProfile(): IO[UserProfile]
-  def increment(x: Int): IO[Int]
-  def incrementAuthorized(x: Int): IO[Int]
   def createPost(content: String, withUpvote: Boolean): IO[Unit]
   def createReply(parentId: Long, targetPostId: Long, content: String, withUpvote: Boolean): IO[(PostTree, PostTreeData)]
   def getPosts(): IO[Vector[Post]]
