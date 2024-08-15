@@ -89,13 +89,6 @@ def relativeEntropy(p: Double, q: Double): Double = {
   p * (logP - logQ) + (1.0 - p) * (logNotP - logNotQ)
 }
 
-def effectSizeOnTarget(effectOnTarget: Option[Effect]): Double = {
-  val targetP     = effectOnTarget.map(_.p).getOrElse(0.0)
-  val targetQ     = effectOnTarget.map(_.q).getOrElse(0.0)
-  val targetPSize = effectOnTarget.map(_.pSize).getOrElse(0L).toDouble
-  relativeEntropy(targetP, targetQ) * targetPSize
-}
-
 case class PostData(
   postId: Long,
   userVote: Direction,

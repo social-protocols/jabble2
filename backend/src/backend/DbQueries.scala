@@ -13,13 +13,22 @@ def getRecursivePostTree(postId: Long, postTreeData: rpc.PostTreeData)(using con
       .sortWith((a, b) => {
         val effectA = postTreeData.posts(a.post.id).effectOnTargetPost
         val effectB = postTreeData.posts(b.post.id).effectOnTargetPost
-
-        val effectSizeA = rpc.effectSizeOnTarget(effectA)
-        val effectSizeB = rpc.effectSizeOnTarget(effectB)
-
-        val tieBreaker = (b.post.score - a.post.score) > 0
-
-        if (effectSizeB != effectSizeA) (effectSizeB - effectSizeA) > 0 else tieBreaker
+        effectA match {
+          case None =>
+            effectB match {
+              case None          => true
+              case Some(effectB) => false
+            }
+          case Some(effectA) =>
+            effectB match {
+              case None => true
+              case Some(effectB) =>
+                val effectSizeA = effectA.effectSizeOnTarget
+                val effectSizeB = effectA.effectSizeOnTarget
+                val tieBreaker  = (b.post.score - a.post.score) > 0
+                if (effectSizeB != effectSizeA) (effectSizeB - effectSizeA) > 0 else tieBreaker
+            }
+        }
       })
     rpc.PostTree(post, replies)
   }
@@ -148,7 +157,7 @@ def getPostWithScore(postId: Long)(using con: DbCon): Option[rpc.PostWithScore] 
       , is_private
       , score
     from post
-    join score_with_default on post.id = score.post_id
+    join score_with_default on post.id = score_with_default.post_id
     where post_id = ${postId}
   """.query[rpc.PostWithScore].run().headOption
 }
