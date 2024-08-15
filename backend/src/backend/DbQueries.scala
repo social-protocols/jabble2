@@ -10,26 +10,7 @@ def getRecursivePostTree(postId: Long, postTreeData: rpc.PostTreeData)(using con
     val replyIds = queries.getReplyIds(postId)
     val replies = replyIds
       .flatMap((replyId: Long) => getRecursivePostTree(replyId, postTreeData))
-      .sortWith((a, b) => {
-        val effectA = postTreeData.posts(a.post.id).effectOnTargetPost
-        val effectB = postTreeData.posts(b.post.id).effectOnTargetPost
-        effectA match {
-          case None =>
-            effectB match {
-              case None          => true
-              case Some(effectB) => false
-            }
-          case Some(effectA) =>
-            effectB match {
-              case None => true
-              case Some(effectB) =>
-                val effectSizeA = effectA.effectSizeOnTarget
-                val effectSizeB = effectA.effectSizeOnTarget
-                val tieBreaker  = (b.post.score - a.post.score) > 0
-                if (effectSizeB != effectSizeA) (effectSizeB - effectSizeA) > 0 else tieBreaker
-            }
-        }
-      })
+      .sortBy { reply => postTreeData.posts(reply.post.id).effectOnTargetPost.fold(0.0)(-_.effectSizeOnTarget) }
     rpc.PostTree(post, replies)
   }
 }
