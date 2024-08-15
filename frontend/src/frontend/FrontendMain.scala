@@ -63,6 +63,7 @@ def app: VNode = {
 
   div(
     facades.Timeago.format(new scala.scalajs.js.Date(1)),
+    components.Markdown("**bold** or not"),
     cls := "flex flex-col",
     header(
       cls := "flex flex-col w-full px-2 py-2",
