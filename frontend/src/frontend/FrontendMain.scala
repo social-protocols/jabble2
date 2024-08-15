@@ -62,6 +62,7 @@ def app: VNode = {
   val refreshTrigger = VarEvent[Unit]()
 
   div(
+    components.Markdown("**bold** or not"),
     cls := "flex flex-col",
     header(
       cls := "flex flex-col w-full px-2 py-2",

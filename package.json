@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "@shoelace-style/shoelace": "^2.15.1",
+    "dompurify": "^3.1.6",
     "keratin-authn": "^1.4.1",
-    "snabbdom": "github:outwatch/snabbdom#0.7.5"
+    "marked": "^14.0.0",
+    "snabbdom": "github:outwatch/snabbdom#0.7.5",
+    "timeago.js": "^4.0.2"
   }
 }

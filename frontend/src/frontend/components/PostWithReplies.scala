@@ -12,6 +12,7 @@ import frontend.TreeContext
 import cats.effect.IO
 import webcodegen.shoelace.SlIcon.*
 import webcodegen.shoelace.SlIcon
+import frontend.facades.Timeago
 
 def postWithReplies(postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VMod = {
   val hidePost     = treeContext.collapsedState.hidePost.getOrElse(postTree.post.id, false)
@@ -62,6 +63,8 @@ def postInfoBar(post: rpc.PostWithScore, postData: rpc.PostData): VNode = {
       0.0
   }
 
+  val createdAtTimeAgo = Timeago.format(new scala.scalajs.js.Date(post.createdAt.toDouble))
+
   // TODO: entire postInfoBar should be a link to stats page
   div(
     cls := "mb-1 flex w-full items-center gap-2 text-xs sm:items-baseline",
@@ -81,9 +84,8 @@ def postInfoBar(post: rpc.PostWithScore, postData: rpc.PostData): VNode = {
     ),
     span(
       cls := "opacity-50",
-      "created at: ",
-      post.createdAt,
-    ), // TODO: display with moment.js (build facade)
+      createdAtTimeAgo,
+    ),
   )
 }
 
