@@ -37,11 +37,23 @@ test-generate-query-code:
   COPY backend/src/backend/queries/Queries.scala backend/src/backend/queries/
   RUN devbox run -- "sqlc vet && sqlc diff"
 
-build-mill:
+mill-compile:
   FROM +devbox
   WORKDIR /code
-  CACHE --chmod 0777 out # mill build folder
-  COPY +build-node-modules/node_modules/@shoelace-style/shoelace/dist ./node_modules/@shoelace-style/shoelace/dist
+  ENV CI=true
+  CACHE --chmod 0777 --id mill-cache /home/devbox/.mill
+  CACHE --chmod 0777 --id mill-cache /home/devbox/.cache/coursier
+  CACHE --chmod 0777 --id mill-out ./out # mill build folder
+  COPY +node-modules/node_modules/@shoelace-style/shoelace/dist ./node_modules/@shoelace-style/shoelace/dist
+  COPY build.sc schema.sql schema.scala.ssp ./
+  COPY --dir rpc backend frontend ./
+  RUN devbox run -- mill --jobs 0 --color true __.compile
+
+
+mill-build-prod:
+  FROM +devbox
+  WORKDIR /code
+  COPY +node-modules/node_modules/@shoelace-style/shoelace/dist ./node_modules/@shoelace-style/shoelace/dist
   ENV CI=true
   COPY build.sc schema.sql schema.scala.ssp ./
   RUN devbox run -- mill __.compile # compile build setup
@@ -58,18 +70,18 @@ build-mill:
   SAVE ARTIFACT dist-backend.jar backend.jar
   SAVE ARTIFACT dist-frontend frontend
 
-build-node-modules:
+node-modules:
   FROM +devbox
   WORKDIR /code
   COPY package.json bun.lockb ./
   RUN devbox run -- bun install
   SAVE ARTIFACT node_modules
 
-build-vite:
+vite-build:
   FROM +devbox
   WORKDIR /code
-  COPY --dir +build-node-modules/node_modules ./
-  COPY --dir +build-mill/frontend ./out/frontend/fullLinkJS.dest
+  COPY --dir +node-modules/node_modules ./
+  COPY --dir +mill-build-prod/frontend ./out/frontend/fullLinkJS.dest
   COPY --dir main.js index.html vite.config.mts tailwind.config.js postcss.config.js style.css public ./
   RUN devbox run -- bunx vite build
   SAVE ARTIFACT --keep-ts dist # timestamps must be kept for browser caching
@@ -100,8 +112,8 @@ docker-build:
    && chmod +x /usr/local/bin/authn-server
 
   WORKDIR /app
-  COPY +build-mill/backend.jar ./
-  COPY --dir --keep-ts +build-vite/dist ./
+  COPY +mill-build-prod/backend.jar ./
+  COPY --dir --keep-ts +vite-build/dist ./
   COPY ./process-compose-prod.yml process-compose.yml
   RUN mkdir /data
   RUN find . -maxdepth 2
@@ -151,8 +163,7 @@ ci-test:
   # BUILD +test-migrations
   BUILD +test-generate-query-code
   BUILD +lint
-  BUILD +build-mill
-  BUILD +build-vite
+  BUILD +mill-compile
 
 ci-deploy:
   # To run manually:
