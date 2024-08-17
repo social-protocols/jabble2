@@ -19,9 +19,9 @@ echo "Set up target database by running all migrations"
 find "${migrations_path}" -maxdepth 1 -type f -name "*.sql" -print0 | sort -z -n | xargs -0 awk 'ENDFILE {print ";"} 1' | sqlite3 -init /dev/null "${target_db_path}"
 
 echo "Diff the final state after migration with schemacrawler..."
-schemacrawler --server=sqlite --database=${target_db_path} --command=details --info-level=detailed | grep -v "^generated on" > ${target_db_path}.schema
-schemacrawler --server=sqlite --database=${reference_db_path} --command=details --info-level=detailed | grep -v "^generated on" > ${reference_db_path}.schema
-GIT_PAGER=cat git diff --no-index -U5 ${target_db_path}.schema ${reference_db_path}.schema && echo "All good. Migrations produce the desired schema!" || exitCode=$?
+schemacrawler --server=sqlite --database=${target_db_path} --command=details --info-level=detailed | grep -v "^generated on" >${target_db_path}.schema
+schemacrawler --server=sqlite --database=${reference_db_path} --command=details --info-level=detailed | grep -v "^generated on" >${reference_db_path}.schema
+GIT_PAGER=cat git diff --no-index --color=always -U5 ${target_db_path}.schema ${reference_db_path}.schema && echo "All good. Migrations produce the desired schema!" || exitCode=$?
 
 rm "${target_db_path}" "${reference_db_path}" "${target_db_path}.schema" "${reference_db_path}.schema"
 
