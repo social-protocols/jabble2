@@ -1,54 +1,6 @@
 {
   "lockfile_version": "1",
   "packages": {
-    "atlas@latest": {
-      "last_modified": "2024-08-13T00:39:45Z",
-      "resolved": "github:NixOS/nixpkgs/60dfaff009e440faefbaeb20d8dda3239ba4a439#atlas",
-      "source": "devbox-search",
-      "version": "0.26.0",
-      "systems": {
-        "aarch64-darwin": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/2jhy39qw8i0qsdyylz17z8hiyzqdqvmc-atlas-0.26.0",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/2jhy39qw8i0qsdyylz17z8hiyzqdqvmc-atlas-0.26.0"
-        },
-        "aarch64-linux": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/kg7c1wflk0pksn5b7n6vryrzvgflkx56-atlas-0.26.0",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/kg7c1wflk0pksn5b7n6vryrzvgflkx56-atlas-0.26.0"
-        },
-        "x86_64-darwin": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/s2ymykfwqyias4qjg6lazfqqd7bdfy4k-atlas-0.26.0",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/s2ymykfwqyias4qjg6lazfqqd7bdfy4k-atlas-0.26.0"
-        },
-        "x86_64-linux": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/vbnxwbnmbpd8dxwii5mgfj1qb8j8k18p-atlas-0.26.0",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/vbnxwbnmbpd8dxwii5mgfj1qb8j8k18p-atlas-0.26.0"
-        }
-      }
-    },
     "bun@latest": {
       "last_modified": "2024-07-31T08:48:38Z",
       "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#bun",
