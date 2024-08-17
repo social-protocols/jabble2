@@ -75,28 +75,37 @@ build-vite:
   SAVE ARTIFACT --keep-ts dist # timestamps must be kept for browser caching
 
 
-build-docker:
-  # FROM ghcr.io/graalvm/jdk-community:22
-  FROM eclipse-temurin:21.0.3_9-jre-ubi9-minimal
+docker-build:
+  FROM github.com/social-protocols/GlobalBrain.jl:$GLOBALBRAIN_REF+docker-build
+  ARG PROCESS_COMPOSE_VERSION=v1.18.0
+  ARG GLOBALBRAIN_REF=4a6eaacb3a74434f00b8f578df024d54877b3657
+  ARG AUTHN_VERSION=v1.20.1
+  # https://adoptium.net/blog/2021/12/eclipse-temurin-linux-installers-available/
+  RUN apt-get update \
+   && apt-get install -y --no-install-recommends \
+      wget \
+      sqlite3 \
+      htop atop \
+      apt-transport-https \
+      gnupg \
+   && wget --quiet -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add - \
+   && echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list \
+   && apt-get update \
+   && apt-get install -y --no-install-recommends \
+      temurin-22-jre \
+   && wget --quiet -O - https://github.com/F1bonacc1/process-compose/releases/download/$PROCESS_COMPOSE_VERSION/process-compose_linux_amd64.tar.gz \
+    | tar -xz -C /usr/local/bin \
+   && rm -f process-compose_linux_amd64.tar.gz \
+   && wget --quiet https://github.com/keratin/authn-server/releases/download/$AUTHN_VERSION/authn-linux64 -O /usr/local/bin/authn-server \
+   && chmod +x /usr/local/bin/authn-server
+
   WORKDIR /app
   COPY +build-mill/backend.jar ./
   COPY --dir --keep-ts +build-vite/dist ./
-  RUN mkdir -p /db
-  ENV FRONTEND_DISTRIBUTION_PATH=dist
-  ENV JDBC_URL=jdbc:sqlite:/data/backend.db
-  ENV JAVA_OPTS=" \
-    -XX:InitialRAMPercentage=95 \
-    -XX:MaxRAMPercentage=95"
-  ENV JAVA_OPTS_DEBUG=" \
-    -Dcom.sun.management.jmxremote=true \
-    -Dcom.sun.management.jmxremote.port=9010 \
-    -Dcom.sun.management.jmxremote.local.only=false \
-    -Dcom.sun.management.jmxremote.authenticate=false \
-    -Dcom.sun.management.jmxremote.ssl=false \
-    -Dcom.sun.management.jmxremote.rmi.port=9010 \
-    -Djava.rmi.server.hostname=localhost"
-  # add $JAVA_OPTS_DEBUG after $JAVA_OPTS to be able to connect with a jmx debugger like visualvm
-  CMD echo "starting jvm..." && java $JAVA_OPTS -jar backend.jar Migrate HttpServer
+  COPY ./process-compose-prod.yml process-compose.yml
+  RUN mkdir /data
+  RUN find . -maxdepth 2
+  CMD process-compose --no-server --tui=false
   SAVE IMAGE app:latest
 
 
@@ -104,7 +113,8 @@ app-deploy:
   # run locally:
   # FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN -i +app-deploy --COMMIT_SHA=<xxxxxx>
   ARG --required COMMIT_SHA
-  ARG IMAGE="registry.fly.io/jabble:deployment-$COMMIT_SHA"
+  ARG --required FLY_APP_NAME
+  ARG IMAGE="registry.fly.io/$FLY_APP_NAME:deployment-$COMMIT_SHA"
   FROM earthly/dind:alpine-3.19-docker-25.0.5-r0
   RUN apk add curl \
    && set -eo pipefail; curl -L https://fly.io/install.sh | sh
@@ -149,4 +159,5 @@ ci-deploy:
   # FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD)
   BUILD +ci-test
   ARG --required COMMIT_SHA
-  BUILD +app-deploy --COMMIT_SHA=$COMMIT_SHA
+  ARG --required FLY_APP_NAME
+  BUILD +app-deploy --COMMIT_SHA=$COMMIT_SHA --FLY_APP_NAME=$FLY_APP_NAME

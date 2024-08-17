@@ -1,0 +1,70 @@
+is_strict: true
+environment:
+  - FORCE_COLOR=1
+
+processes:
+
+  back:
+    command: |
+      set -Eeuo pipefail
+      echo JDBC_URL=$$JDBC_URL
+      echo JAVA_OPTS=$$JAVA_OPTS
+      echo starting jvm...
+      java $JAVA_OPTS -jar backend.jar Migrate HttpServer
+    environment:
+      - JDBC_URL=$APP_JDBC_URL
+      - FRONTEND_DISTRIBUTION_PATH=dist
+      # - LOG_LEVEL="warn" # TODO: not detected by scribe
+      - JAVA_OPTS=" 
+        -XX:InitialRAMPercentage=95 
+        -XX:MaxRAMPercentage=95" # todo: how much do other processes use?
+      # to be able to connect with a jmx debugger like visualvm,
+      # add $JAVA_OPTS_DEBUG to the java command after $JAVA_OPTS
+      - JAVA_OPTS_DEBUG=" \
+        -Dcom.sun.management.jmxremote=true \
+        -Dcom.sun.management.jmxremote.port=9010 \
+        -Dcom.sun.management.jmxremote.local.only=false \
+        -Dcom.sun.management.jmxremote.authenticate=false \
+        -Dcom.sun.management.jmxremote.ssl=false \
+        -Dcom.sun.management.jmxremote.rmi.port=9010 \
+        -Djava.rmi.server.hostname=localhost"
+    availability:
+      restart: always
+      max_restarts: 5
+      exit_on_end: true # stop process-compose when command exits
+
+  auth:
+    command: |
+      # https://github.com/keratin/authn-server/tree/main/docs#readme
+      set -Eeuo pipefail
+      echo DATABASE_URL=$$DATABASE_URL
+      echo APP_DOMAINS=$$APP_DOMAINS
+      echo AUTHN_URL=$$AUTHN_URL
+      authn-server migrate
+      authn-server server
+    environment:
+      - PORT=3001
+      - PUBLIC_PORT=3000
+      - ENABLE_SIGNUP=false # signup must happen via backend
+      - DATABASE_URL=$AUTHN_DATABASE_URL
+      - APP_DOMAINS=$AUTHN_APP_DOMAINS
+      - AUTHN_URL=$AUTHN_AUTHN_URL
+      - SECRET_KEY_BASE=$AUTHN_SECRET_KEY_BASE
+      - HTTP_AUTH_USERNAME=$AUTHN_HTTP_AUTH_USERNAME
+      - HTTP_AUTH_PASSWORD=$AUTHN_HTTP_AUTH_PASSWORD
+    availability:
+      restart: always
+      max_restarts: 5
+
+  gbrain:
+    working_dir: service
+    command: |
+      set -Eeuo pipefail
+      echo DATABASE_PATH=$$DATABASE_PATH
+      echo starting julia...
+      julia -t auto --code-coverage=none --check-bounds=yes --project server.jl
+    environment:
+      - DATABASE_PATH=$GLOBALBRAIN_DATABASE_PATH
+    availability:
+      restart: always
+      max_restarts: 5

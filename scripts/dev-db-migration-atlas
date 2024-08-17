@@ -5,7 +5,7 @@ set -Eeuo pipefail
 exitCode=0
 
 schema_path="./schema.sql"
-dev_db_path="./data/backend.db"
+dev_db_path="./data/app.db"
 
 target_db_path=$dev_db_path
 reference_db_path="${schema_path}.db"

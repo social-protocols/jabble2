@@ -9,13 +9,13 @@ dev-tui:
     process-compose up
 
 db:
-  sqlite3 data/backend.db
+  sqlite3 data/app.db
 
 reset-db:
-  rm -f data/backend.db
+  rm -f data/app.db
   rm -f data/authn.db
   rm -f data/globalbrain.db
-  sqlite3 -init /dev/null data/backend.db < schema.sql
+  sqlite3 -init /dev/null data/app.db < schema.sql
 
 gen-bsp:
     mill mill.bsp.BSP/install
@@ -37,11 +37,25 @@ generate-query-code:
   scripts/generate-query-code
 
 docker-build:
-  earthly +build-docker
+  earthly +docker-build
 
 docker-run:
-  # to use jvm debugging, in Earthfile, add the JAVA_OPTS_DEBUG options the java command
-  docker run -p 8081:8081 -p 9010:9010 --cpus 1 -m 256M app
+  # to use jvm debugging on port 9010, 
+  # in process-compose-prod.yml, add the JAVA_OPTS_DEBUG options to the java command
+  
+  docker run \
+    --init \
+    -p 8081:8081 -p 3000:3000 -p 9010:9010 \
+    --cpus 1 -m 1024M \
+    -e APP_JDBC_URL="jdbc:sqlite:/data/app.db" \
+    -e GLOBALBRAIN_DATABASE_PATH="/data/globalbrain.db" \
+    -e AUTHN_DATABASE_URL="sqlite3://localhost//data/authn.db" \
+    -e AUTHN_APP_DOMAINS="localhost" \
+    -e AUTHN_AUTHN_URL="http://localhost:3000" \
+    -e AUTHN_SECRET_KEY_BASE="test" \
+    -e AUTHN_HTTP_AUTH_USERNAME="admin" \
+    -e AUTHN_HTTP_AUTH_PASSWORD="adminpw" \
+    app
 
 ci:
   (git ls-files && git ls-files --others --exclude-standard) | entr -cnr earthly +ci-test
