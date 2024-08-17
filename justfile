@@ -75,3 +75,12 @@ format:
 # count lines of code in repo
 cloc:
   cloc --vcs=git
+
+# deploy local state to production
+prod-deploy:
+  read -p 'Are you sure? (y/n): ' confirm && [[ $confirm == [yY] ]] && \
+  FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD) --FLY_APP_NAME=jabble
+
+# show live logs from production
+prod-logs:
+  flyctl logs -a jabble

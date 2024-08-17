@@ -97,7 +97,7 @@ docker-build:
    && apt-get install -y --no-install-recommends \
       wget \
       sqlite3 \
-      htop atop \
+      htop atop net-tools \
       apt-transport-https \
       gnupg \
    && wget --quiet -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add - \
@@ -123,7 +123,7 @@ docker-build:
 
 app-deploy:
   # run locally:
-  # FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN -i +app-deploy --COMMIT_SHA=<xxxxxx>
+  # FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD) --FLY_APP_NAME=<fly-app-name>
   ARG --required COMMIT_SHA
   ARG --required FLY_APP_NAME
   ARG IMAGE="registry.fly.io/$FLY_APP_NAME:deployment-$COMMIT_SHA"
@@ -131,7 +131,7 @@ app-deploy:
   RUN apk add curl \
    && set -eo pipefail; curl -L https://fly.io/install.sh | sh
   COPY fly.toml ./
-  WITH DOCKER --load $IMAGE=+build-docker
+  WITH DOCKER --load $IMAGE=+docker-build
     RUN --secret FLY_API_TOKEN \
         docker image ls \
      && /root/.fly/bin/flyctl auth docker \
@@ -167,7 +167,7 @@ ci-test:
 
 ci-deploy:
   # To run manually:
-  # FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD)
+  # FLY_API_TOKEN=$(flyctl tokens create deploy) FLY_APP_NAME=<my-app-name> earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD)
   BUILD +ci-test
   ARG --required COMMIT_SHA
   ARG --required FLY_APP_NAME
