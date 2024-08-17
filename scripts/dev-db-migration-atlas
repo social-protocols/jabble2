@@ -2,6 +2,8 @@
 
 set -Eeuo pipefail
 
+exitCode=0
+
 schema_path="./schema.sql"
 dev_db_path="./data/backend.db"
 
