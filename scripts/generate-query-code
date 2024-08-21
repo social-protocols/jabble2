@@ -5,7 +5,6 @@ set -Eeuo pipefail
 # TODO: read directly from sqlc.yml using yq
 targetDir="backend/src/backend/queries"
 
-rm -rf "$targetDir"
 echo "Linting queries..."
 sqlc vet
 echo "Generating query code..."
