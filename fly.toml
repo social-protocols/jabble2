@@ -1,26 +1,56 @@
-# fly.toml app configuration file generated for jabble on 2024-06-18T22:32:08+02:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
+# https://fly.io/docs/reference/configuration
 
 app = 'jabble'
 primary_region = 'cdg'
+swap_size_mb = 512
 
-[build]
+[[vm]]
+size = 'shared-cpu-1x'
+memory = '1GB'
 
-[[mounts]]
-source = 'db'
-destination = '/db'
+# TODO: serve frontend statically instead of from the app backend
+# [[statics]]
+#   guest_path = "/app/public"
+#   url_prefix = "/public"
+
 
 [http_service]
 internal_port = 8081
 force_https = true
-auto_stop_machines = true
+auto_stop_machines = "stop" # action when the app is idle for several minutes
 auto_start_machines = true
 min_machines_running = 0
-processes = ['app']
+processes = ['app'] # todo
 
-[[vm]]
-memory = '256mb'
-cpu_kind = 'shared'
-cpus = 1
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+timeout = "5s"
+path = "/"
+
+[[services]]
+internal_port = 3000
+protocol = "tcp"
+
+[[services.ports]]
+handlers = ["http"]
+port = 3000
+force_https = true  # optional
+
+
+[[mounts]]
+source = 'data' # volume name
+destination = '/data'
+initial_size = "1GB"
+auto_extend_size_threshold = 80
+auto_extend_size_increment = "1GB"
+auto_extend_size_limit = "10GB"
+
+[env]
+APP_JDBC_URL = "jdbc:sqlite:/data/app.db"
+GLOBALBRAIN_DATABASE_PATH = "/data/globalbrain.db"
+AUTHN_DATABASE_URL = "sqlite3://localhost//data/authn.db"
+AUTHN_APP_DOMAINS = "jabble.fly.dev,jabble.xyz"
+AUTHN_AUTHN_URL = "https://jabble.fly.dev:3000"
+
