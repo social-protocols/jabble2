@@ -49,7 +49,7 @@ processes:
 
   query:
     namespace: watcher
-    command: find queries.sql schema.sql query_template.go.tmpl sqlc.yml scripts/generate-query-code | entr -npr scripts/generate-query-code
+    command: find queries.sql schema.sql queries_template.go.tmpl sqlc.yml scripts/generate-query-code | entr -npr scripts/generate-query-code
 
   rpc-re:
     # Workaround after changing sloth rpc api trait.

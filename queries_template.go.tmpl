@@ -12,10 +12,27 @@ https://github.com/AugustNagro/magnum?tab=readme-ov-file
 {{- $scalaType }}
 {{- end -}}
 
-package backend.tmpQueries
+// This file is generated from queries.sql using queries_template.go.tmpl
+package backend.queries
 
 import com.augustnagro.magnum
 import com.augustnagro.magnum.*
+
+def fragWriter(params: Seq[Any]): FragWriter = { (preparedStatement, startPos) =>
+  var i = 0
+  val n = params.size
+  while (i < n) {
+    val param = params(i)
+    param match {
+      case param: Int    => preparedStatement.setInt(startPos + i, param)
+      case param: Long   => preparedStatement.setLong(startPos + i, param)
+      case param: String => preparedStatement.setString(startPos + i, param)
+      case param: Double => preparedStatement.setDouble(startPos + i, param)
+    }
+    i += 1
+  }
+  startPos + params.size
+}
 
 {{- range .Queries }}
 
@@ -60,14 +77,17 @@ def {{.Name}}({{range .Params}}
   {{.Column.Name}}:{{template "ScalaType" .Column}},
 {{- end}}
 )(using con: DbCon): {{ $returnType }} = {
-  Frag("""
-  {{ .Text }}
-  """, params = IArray({{range .Params}}
+  val params = IArray({{range .Params}}
   {{.Column.Name}},
-  {{end}}))
+  {{end}})
+  val result = Frag("""
+  {{ .Text }}
+  """, params, fragWriter(params))
   {{- if eq .Cmd ":exec" }}.update.run(){{end}}
   {{- if eq .Cmd ":many" }}.query[{{ $rowType }}].run(){{end}}
   {{- if eq .Cmd ":one" }}.query[{{ $rowType }}].run().head{{end}}
+  println(s"{{.Name}}({{range .Params}}{{.Column.Name}}=${ {{.Column.Name}} }, {{end}}) => ${result}")
+  result
 }
 
 {{- end -}}
