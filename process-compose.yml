@@ -5,18 +5,15 @@ environment:
 processes:
 
   npm:
-    namespace: init
     command: bun install --color=always
 
   build:
-    namespace: init
     # initial mill build, so that vite finds the js files referenced in main.js
     command: |
       scripts/generate-query-code
       mill --jobs 0 --color true '{backend.compile,frontend.fastLinkJS}'
 
   vite:
-    namespace: service
     command: bunx vite dev --port 12345 --strictPort
     depends_on:
       npm:
@@ -26,7 +23,6 @@ processes:
         condition: process_completed
 
   front:
-    namespace: watcher
     # frontend has separate mill watch process, because backend changes should not trigger page reloads
     command: mill --jobs 0 --color true --watch frontend.fastLinkJS
     depends_on:
@@ -35,7 +31,6 @@ processes:
         condition: process_completed
 
   back:
-    namespace: service
     # backend has separate mill watch process, because frontend changes should not trigger backend restarts
     command: mill --jobs 0 --color true --watch backend.runBackground
     environment:
@@ -48,7 +43,6 @@ processes:
         condition: process_completed
 
   query:
-    namespace: watcher
     command: find queries.sql schema.sql queries_template.go.tmpl sqlc.yml scripts/generate-query-code | entr -npr scripts/generate-query-code
 
   rpc-re:
@@ -59,11 +53,9 @@ processes:
     command: find rpc | entr -np bash -c 'echo "cleaning rpc... (incremental compilation workaround)"; mill clean "{rpc,frontend,backend}"; touch rpc/src/rpc/RpcApi.scala'
 
   db:
-    namespace: watcher
     command: find schema.sql scripts/dev-db-migration-atlas | entr -n scripts/dev-db-migration-atlas
 
   auth:
-    namespace: service
     command: |
       # https://github.com/keratin/authn-server/tree/main/docs#readme
       docker run --name authn --rm -p 3000:3000 -p 3001:3001 \
@@ -82,7 +74,6 @@ processes:
         sh -c "./authn migrate && ./authn server"
 
   gbrain:
-    namespace: service
     # the image must first be built locally in the GlobalBrain repo using earthly +docker-build
     command: |
       docker run --name global-brain --rm -p 8000:8000 \
