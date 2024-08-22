@@ -30,7 +30,6 @@ def postWithReplies(
       postDetails(postTree.post, postData, postTree, treeContext, refreshTrigger, userProfile),
       VMod.when(!hideChildren)(
         div(
-          postTree.replies.toString,
           postTree.replies.map { tree => postWithReplies(tree, treeContext, refreshTrigger, userProfile) },
           cls := "ml-2 pl-3",
         )
