@@ -13,7 +13,9 @@ processes:
       java $JAVA_OPTS -jar backend.jar Migrate HttpServer
     environment:
       - JDBC_URL=$APP_JDBC_URL
-      - FRONTEND_DISTRIBUTION_PATH=dist
+      - FRONTEND_DISTRIBUTION_PATH=static
+      - AUTHN_ADMIN_URL=http://localhost:3001
+      - AUTHN_AUDIENCES=$AUTHN_APP_DOMAINS # TODO: are audiences really the same as app_domains?
       # - LOG_LEVEL="warn" # TODO: not detected by scribe
       - JAVA_OPTS=" 
         -XX:InitialRAMPercentage=95 
@@ -48,7 +50,7 @@ processes:
       - ENABLE_SIGNUP=false # signup must happen via backend
       - DATABASE_URL=$AUTHN_DATABASE_URL
       - APP_DOMAINS=$AUTHN_APP_DOMAINS
-      - AUTHN_URL=$AUTHN_AUTHN_URL
+      - AUTHN_URL=$AUTHN_URL
       - SECRET_KEY_BASE=$AUTHN_SECRET_KEY_BASE
       - HTTP_AUTH_USERNAME=$AUTHN_HTTP_AUTH_USERNAME
       - HTTP_AUTH_PASSWORD=$AUTHN_HTTP_AUTH_PASSWORD
@@ -57,7 +59,7 @@ processes:
       max_restarts: 5
 
   gbrain:
-    working_dir: service
+    working_dir: globalbrain/service
     command: |
       set -Eeuo pipefail
       echo DATABASE_PATH=$$DATABASE_PATH

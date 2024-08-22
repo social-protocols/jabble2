@@ -10,8 +10,8 @@ memory = '1GB'
 
 # TODO: serve frontend statically instead of from the app backend
 # [[statics]]
-#   guest_path = "/app/public"
-#   url_prefix = "/public"
+#   guest_path = "/app/static"
+#   url_prefix = "/"
 
 
 [http_service]
@@ -20,7 +20,6 @@ force_https = true
 auto_stop_machines = "stop" # action when the app is idle for several minutes
 auto_start_machines = true
 min_machines_running = 0
-processes = ['app'] # todo
 
 [[http_service.checks]]
 grace_period = "10s"
@@ -29,14 +28,16 @@ method = "GET"
 timeout = "5s"
 path = "/"
 
+# TODO: health-checks to warm up gbrain and jvm
+
 [[services]]
 internal_port = 3000
 protocol = "tcp"
 
 [[services.ports]]
-handlers = ["http"]
+handlers = ["tls", "http"]
 port = 3000
-force_https = true  # optional
+# force_https = true  # optional
 
 
 [[mounts]]
@@ -52,5 +53,5 @@ APP_JDBC_URL = "jdbc:sqlite:/data/app.db"
 GLOBALBRAIN_DATABASE_PATH = "/data/globalbrain.db"
 AUTHN_DATABASE_URL = "sqlite3://localhost//data/authn.db"
 AUTHN_APP_DOMAINS = "jabble.fly.dev,jabble.xyz"
-AUTHN_AUTHN_URL = "https://jabble.fly.dev:3000"
+AUTHN_URL = "https://jabble.fly.dev:3000"
 

@@ -32,16 +32,10 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   val token: Option[String]          = headers.collect { case Authorization(Credentials.Token(AuthScheme.Bearer, token)) => token }
   val httpClient                     = EmberClientBuilder.default[IO].withTimeout(44.seconds).build.allocated.map(_._1).unsafeRunSync() // TODO not forever
   val authnClient = AuthnClient[IO](
-    AuthnClientConfig(
-      issuer = "http://localhost:3000",
-      audiences = Set("localhost"),
-      username = "admin",
-      password = "adminpw",
-      adminURL = Some("http://localhost:3001"),
-    ),
+    AppConfig.fromEnv.authnClientConfig,
     httpClient = httpClient,
   )
-  val verifier                          = TokenVerifier[IO]("http://localhost:3000", Set("localhost"))
+  val verifier                          = TokenVerifier[IO](AppConfig.fromEnv.authnClientConfig.issuer, AppConfig.fromEnv.authnClientConfig.audiences)
   def userAccountId: IO[Option[String]] = token.traverse(token => verifier.verify(token).map(_.accountId))
   def withUser[T](code: String => IO[T]): IO[T] = userAccountId.flatMap {
     case Some(accountId) => code(accountId)

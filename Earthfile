@@ -84,13 +84,13 @@ vite-build:
   COPY --dir +mill-build-prod/frontend ./out/frontend/fullLinkJS.dest
   COPY --dir main.js index.html vite.config.mts tailwind.config.js postcss.config.js style.css public ./
   RUN devbox run -- bunx vite build
-  SAVE ARTIFACT --keep-ts dist # timestamps must be kept for browser caching
+  SAVE ARTIFACT --keep-ts dist static # timestamps must be kept for browser caching
 
 
 docker-build:
   FROM github.com/social-protocols/GlobalBrain.jl:$GLOBALBRAIN_REF+docker-build
   ARG PROCESS_COMPOSE_VERSION=v1.18.0
-  ARG GLOBALBRAIN_REF=4a6eaacb3a74434f00b8f578df024d54877b3657
+  ARG GLOBALBRAIN_REF=fd87c7c0417e74701ed08df5f315c6c9eab7b0e1
   ARG AUTHN_VERSION=v1.20.1
   # https://adoptium.net/blog/2021/12/eclipse-temurin-linux-installers-available/
   RUN apt-get update \
@@ -113,7 +113,7 @@ docker-build:
 
   WORKDIR /app
   COPY +mill-build-prod/backend.jar ./
-  COPY --dir --keep-ts +vite-build/dist ./
+  COPY --dir --keep-ts +vite-build/static ./
   COPY ./process-compose-prod.yml process-compose.yml
   RUN mkdir /data
   RUN find . -maxdepth 2
