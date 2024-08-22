@@ -79,10 +79,12 @@ node-modules:
 
 vite-build:
   FROM +devbox
+  ARG --required AUTHN_URL
   WORKDIR /code
   COPY --dir +node-modules/node_modules ./
   COPY --dir +mill-build-prod/frontend ./out/frontend/fullLinkJS.dest
   COPY --dir main.js index.html vite.config.mts tailwind.config.js postcss.config.js style.css public ./
+  RUN env
   RUN devbox run -- bunx vite build
   SAVE ARTIFACT --keep-ts dist static # timestamps must be kept for browser caching
 

@@ -16,7 +16,6 @@ import scala.concurrent.duration.*
 
 import authn.backend.TokenVerifier
 import authn.backend.AuthnClient
-import authn.backend.AuthnClientConfig
 import authn.backend.AccountImport
 
 import java.util.concurrent.Executors
