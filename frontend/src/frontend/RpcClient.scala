@@ -3,9 +3,6 @@ package frontend
 import cats.effect.IO
 import sloth.ext.jsdom.client.*
 
-import authn.frontend.AuthnClient
-import authn.frontend.AuthnClientConfig
-
 object RpcClient {
   import chameleon.ext.upickle.given // TODO: Option as null
 

@@ -42,7 +42,7 @@ def pathToPage(path: Path): Page = path match {
 
 object Main extends IOApp.Simple {
   val userProfile: IO[Option[rpc.UserProfile]] = RpcClient.call.getUserProfile()
-  val appComponent: VNode = div(userProfile.map(app))
+  val appComponent: VNode                      = div(userProfile.map(app))
   def run = lift {
     // render the component into the <div id="app"></div> in index.html
     unlift(Outwatch.renderReplace[IO]("#app", appComponent, RenderConfig.showError))
@@ -67,71 +67,62 @@ def app(initialUserProfile: Option[rpc.UserProfile]): VNode = {
   val userProfile = Var(initialUserProfile)
 
   val refreshTrigger = VarEvent[Unit]()
-  refreshTrigger.foreach(_ => println("refresh"))
 
   div(
     cls := "flex flex-col",
     refreshTrigger.observable
       .prepend(())
       .map(_ =>
-      Rx {
-      println(s"app ${userProfile()}")
-        VMod(
-          header(
-            cls := "flex flex-col w-full px-2 py-2",
-            div(
-              cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
-              button(
-                "Jabble ",
-                span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
-                onClick.as(Page.Index) --> page,
-                cls := "font-bold",
-              ),
+        Rx {
+          println(s"app ${userProfile()}")
+          VMod(
+            header(
+              cls := "flex flex-col w-full px-2 py-2",
               div(
-                cls := "flex items-center gap-10 ml-auto",
-                              userProfile().map(
-                profile =>
-                  div(
-                    profile.userName,
-                    marginRight := "10px",
-                  )
-              ),
-
-                userProfile().map {
-                  case Some(profile) =>
-                    VMod(
-                      div(profile.userName, marginRight := "10px"),
-                      slButton(
-                        "Logout",
-                        onClick.doEffect {
-                          lift {
-                            val result = unlift(authnClient.logout.attempt)
-                            result match {
-                              case Left(error) => println(error.getMessage())
-                              case Right(_) =>
-                                println("logged out")
-                                refreshTrigger.set(())
+                cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
+                button(
+                  "Jabble ",
+                  span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
+                  onClick.as(Page.Index) --> page,
+                  cls := "font-bold",
+                ),
+                div(
+                  cls := "flex items-center gap-10 ml-auto",
+                  userProfile() match {
+                    case Some(profile) =>
+                      VMod(
+                        div(profile.userName, marginRight := "10px"),
+                        slButton(
+                          "Logout",
+                          onClick.doEffect {
+                            lift {
+                              val result = unlift(authnClient.logout.attempt)
+                              result match {
+                                case Left(error) => println(error.getMessage())
+                                case Right(_) =>
+                                  println("logged out")
+                                  refreshTrigger.set(())
+                              }
                             }
-                          }
-                        },
-                      ),
-                    )
-                  case None =>
-                    slButton("Login", onClick.as(Page.Login) --> page)
-                },
+                          },
+                        ),
+                      )
+                    case None =>
+                      slButton("Login", onClick.as(Page.Login) --> page)
+                  },
+                ),
               ),
             ),
-          ),
-          div(
-            cls := "mx-auto w-full max-w-3xl px-2",
-            page.map[VMod] {
-              case Page.Index    => frontPage(refreshTrigger)
-              case Page.Login    => loginPage(refreshTrigger)
-              case Page.Post(id) => postPage(id.toLong, refreshTrigger)
-              case _             => div("page not found")
-            },
-          ),
-        )
+            div(
+              cls := "mx-auto w-full max-w-3xl px-2",
+              page.map[VMod] {
+                case Page.Index    => frontPage(refreshTrigger)
+                case Page.Login    => loginPage(refreshTrigger)
+                case Page.Post(id) => postPage(id.toLong, refreshTrigger, userProfile())
+                case _             => div("page not found")
+              },
+            ),
+          )
         }
       ),
   )
