@@ -48,33 +48,32 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
     case None            => IO.raiseError(Exception("403 Unauthorized"))
   }
 
-  def register(username: String, password: String): IO[Unit] = lift {
-    val accountImport = unlift(authnClient.importAccount(AccountImport(username, password)))
-    unlift(
-      IO {
-        magnum.connect(ds) {
-          db.UserProfileRepo.insert(db.UserProfile.Creator(userId = accountImport.id.toString, userName = username))
+  def register(username: String, password: String): IO[Boolean] = lift {
+    val accountImportResult = unlift(authnClient.importAccount(AccountImport(username, password)).attempt)
+    accountImportResult match {
+      case Left(error) =>
+        scribe.info("account creation failed", error)
+        false
+      case Right(accountImport) =>
+        Either.catchNonFatal {
+          magnum.connect(ds) {
+            db.UserProfileRepo.insert(db.UserProfile.Creator(userId = accountImport.id.toString, userName = username))
+          }
+        } match {
+          case Left(error) =>
+            // if database fails, remove the just created account
+            unlift(authnClient.archiveAccount(accountImport.id.toString))
+            throw error
+            false
+          case Right(_) => true
         }
-      }.onError(e =>
-        scribe.info("account creation failed", e)
-        // if database fails, remove the just created account
-        authnClient.archiveAccount(accountImport.id.toString)
-      )
-    )
-  }
-
-  def getUsername(): IO[String] = withUser { userId =>
-    lift {
-      val account = unlift(authnClient.account(userId))
-      account.username
     }
   }
 
-  def getUserProfile(): IO[rpc.UserProfile] = withUser { userId =>
-    IO {
-      magnum.connect(ds) {
-        db.UserProfileRepo.findById(userId).map(_.to[rpc.UserProfile]).getOrElse(throw Exception(s"User $userId not found"))
-      }
+  def getUserProfile(): IO[Option[rpc.UserProfile]] = lift {
+    val userIdOpt = unlift(userAccountId.attempt).toOption.flatten
+    magnum.connect(ds) {
+      userIdOpt.flatMap(userId => db.UserProfileRepo.findById(userId).map(_.to[rpc.UserProfile]))
     }
   }
 

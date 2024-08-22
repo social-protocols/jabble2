@@ -8,6 +8,7 @@ import colibri.*
 import colibri.reactive.*
 import authn.frontend.*
 import cats.effect.unsafe.implicits.global
+import cats.syntax.all._
 import webcodegen.shoelace.SlButton.{value as _, *}
 import webcodegen.shoelace.SlButton
 import colibri.router.*
@@ -64,36 +65,58 @@ def app: VNode = {
   div(
     components.Markdown("**bold** or not"),
     cls := "flex flex-col",
-    header(
-      cls := "flex flex-col w-full px-2 py-2",
-      div(
-        cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
-        button(
-          "Jabble ",
-          span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
-          onClick.as(Page.Index) --> page,
-          cls := "font-bold",
-        ),
-        div(
-          cls := "flex items-center gap-10 ml-auto",
-          div(RpcClient.call.getUsername(), marginRight := "10px"),
-          slButton("Login", onClick.as(Page.Login) --> page),
+    refreshTrigger.observable
+      .prepend(())
+      .map(_ =>
+        VMod(
+          header(
+            cls := "flex flex-col w-full px-2 py-2",
+            div(
+              cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
+              button(
+                "Jabble ",
+                span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
+                onClick.as(Page.Index) --> page,
+                cls := "font-bold",
+              ),
+              div(
+                cls := "flex items-center gap-10 ml-auto",
+                RpcClient.call.getUserProfile().map {
+                  case Some(profile) =>
+                    VMod(
+                      div(profile.userName, marginRight := "10px"),
+                      slButton(
+                        "Logout",
+                        onClick.doEffect {
+                          lift {
+                            val result = unlift(authnClient.logout.attempt)
+                            result match {
+                              case Left(error) => println(error.getMessage())
+                              case Right(_) =>
+                                println("logged out")
+                                refreshTrigger.set(())
+                            }
+                          }
+                        },
+                      ),
+                    )
+                  case None =>
+                    slButton("Login", onClick.as(Page.Login) --> page)
+                },
+              ),
+            ),
+          ),
+          div(
+            cls := "mx-auto w-full max-w-3xl px-2",
+            page.map[VMod] {
+              case Page.Index    => frontPage(refreshTrigger)
+              case Page.Login    => loginPage(refreshTrigger)
+              case Page.Post(id) => postPage(id.toLong, refreshTrigger)
+              case _             => div("page not found")
+            },
+          ),
         ),
       ),
-    ),
-    div(
-      cls := "mx-auto w-full max-w-3xl px-2",
-      refreshTrigger.observable
-        .prepend(())
-        .map(_ =>
-          page.map[VMod] {
-            case Page.Index    => frontPage(refreshTrigger)
-            case Page.Login    => loginPage
-            case Page.Post(id) => postPage(id.toLong, refreshTrigger)
-            case _             => div("page not found")
-          },
-        ),
-    ),
   )
 }
 
@@ -110,8 +133,8 @@ def frontPage(refreshTrigger: VarEvent[Unit]) = {
   )
 }
 
-def loginPage = {
-  authControl(authnClient)
+def loginPage(refreshTrigger: VarEvent[Unit]) = {
+  authControl(authnClient, refreshTrigger)
 }
 
 case class TreeContext(

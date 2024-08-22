@@ -5,9 +5,8 @@ import upickle.default.ReadWriter
 import scala.math.log
 
 trait RpcApi {
-  def register(username: String, password: String): IO[Unit]
-  def getUsername(): IO[String]
-  def getUserProfile(): IO[UserProfile]
+  def register(username: String, password: String): IO[Boolean]
+  def getUserProfile(): IO[Option[UserProfile]]
   def createPost(content: String, withUpvote: Boolean): IO[Unit]
   def createReply(parentId: Long, targetPostId: Long, content: String, withUpvote: Boolean): IO[(PostTree, PostTreeData)]
   def getPosts(): IO[Vector[Post]]

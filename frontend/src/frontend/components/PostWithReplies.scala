@@ -90,10 +90,7 @@ def postInfoBar(post: rpc.PostWithScore, postData: rpc.PostData): VNode = {
 }
 
 def postActionBar(post: rpc.PostWithScore, postTree: rpc.PostTree, treeContext: TreeContext, refreshTrigger: VarEvent[Unit]): VNode = {
-  val userIsAdmin: IO[Boolean] = lift {
-    val isAdmin = unlift(RpcClient.call.getUserProfile().map(_.isAdmin))
-    if (isAdmin == 1) true else false
-  }
+  val userIsAdmin: IO[Boolean] = RpcClient.call.getUserProfile().map(_.exists(_.isAdmin == 1))
 
   val contentState = Var("")
 
