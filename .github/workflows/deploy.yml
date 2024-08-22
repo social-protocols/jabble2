@@ -43,7 +43,7 @@ jobs:
 
     - name: Deploy
       run:
-        earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA --FLY_APP_NAME --AUTHN_URL
+        earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA="$COMMIT_SHA" --FLY_APP_NAME="$FLY_APP_NAME" --AUTHN_URL="$AUTHN_URL"
       env:
         COMMIT_SHA: ${{ github.sha }}
         FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
