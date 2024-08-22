@@ -826,6 +826,54 @@
           "store_path": "/nix/store/cdn3mnbxfhww7r40r5snmxipqaz7j5kk-sqlite-interactive-3.46.0-bin"
         }
       }
+    },
+    "wrk@latest": {
+      "last_modified": "2024-08-14T11:41:26Z",
+      "resolved": "github:NixOS/nixpkgs/0cb2fd7c59fed0cd82ef858cbcbdb552b9a33465#wrk",
+      "source": "devbox-search",
+      "version": "4.2.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mhmj80xxyd97iqg2cjlhhh2ljgz5h55d-wrk-4.2.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/mhmj80xxyd97iqg2cjlhhh2ljgz5h55d-wrk-4.2.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/146jr33vbd0zxsmhfwh55nl29g0kh4z8-wrk-4.2.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/146jr33vbd0zxsmhfwh55nl29g0kh4z8-wrk-4.2.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/m6dmv1r65r2d84rnirsx91alaf09d6kv-wrk-4.2.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/m6dmv1r65r2d84rnirsx91alaf09d6kv-wrk-4.2.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/q47h22zr8x5wxyv0y6niimm2czc87hp7-wrk-4.2.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/q47h22zr8x5wxyv0y6niimm2czc87hp7-wrk-4.2.0"
+        }
+      }
     }
   }
 }

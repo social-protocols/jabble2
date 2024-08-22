@@ -18,8 +18,8 @@ processes:
       - AUTHN_AUDIENCES=$AUTHN_APP_DOMAINS # TODO: are audiences really the same as app_domains?
       # - LOG_LEVEL="warn" # TODO: not detected by scribe
       - JAVA_OPTS=" 
-        -XX:InitialRAMPercentage=95 
-        -XX:MaxRAMPercentage=95" # todo: how much do other processes use?
+        -Xmx256m 
+        -Xmx256m"
       # to be able to connect with a jmx debugger like visualvm,
       # add $JAVA_OPTS_DEBUG to the java command after $JAVA_OPTS
       - JAVA_OPTS_DEBUG=" \
@@ -59,7 +59,7 @@ processes:
       max_restarts: 5
 
   gbrain:
-    working_dir: globalbrain/service
+    working_dir: /globalbrain/service
     command: |
       set -Eeuo pipefail
       echo DATABASE_PATH=$$DATABASE_PATH

@@ -84,7 +84,7 @@ cloc:
 # deploy local state to production
 prod-deploy:
   read -p 'Are you sure? (y/n): ' confirm && [[ $confirm == [yY] ]] && \
-  FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD) --FLY_APP_NAME=jabble
+  FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD) --FLY_APP_NAME=jabble --AUTHN_URL=https://jabble.fly.dev:3000
 
 # show live logs from production
 prod-logs:
@@ -93,3 +93,7 @@ prod-logs:
 # ssh connection to production server
 prod-ssh:
   flyctl ssh console
+
+# benchmark http requests on production
+prod-benchmark:
+  wrk -t12 -c400 -d20s -s wrk-vote.lua https://jabble.fly.dev

@@ -2,16 +2,15 @@
 
 app = 'jabble'
 primary_region = 'cdg'
-swap_size_mb = 512
+swap_size_mb = 1024
 
 [[vm]]
 size = 'shared-cpu-1x'
 memory = '1GB'
 
-# TODO: serve frontend statically instead of from the app backend
-# [[statics]]
-#   guest_path = "/app/static"
-#   url_prefix = "/"
+[[statics]]
+guest_path = "/app/static"
+url_prefix = "/"
 
 
 [http_service]

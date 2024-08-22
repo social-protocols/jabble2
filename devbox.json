@@ -17,6 +17,7 @@
     "sqlc@latest",
     "github:fdietze/sqlc-gen-from-template/6295f7a",
     "cloc",
+    "wrk@latest",
   ],
   "shell": {
     // "init_hook": "export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true PLAYWRIGHT_BROWSERS_PATH=$(nix build --print-out-paths nixpkgs#playwright-driver.browsers)",
