@@ -16,6 +16,7 @@ import frontend.components.*
 import webcodegen.shoelace.SlIcon.{name as _, *}
 import webcodegen.shoelace.SlIcon
 import rpc.UserProfile
+import scala.scalajs.js
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
@@ -49,7 +50,7 @@ object Main extends IOApp.Simple {
 
 val authnClient = AuthnClient[IO](
   AuthnClientConfig(
-    hostUrl = "http://localhost:3000",
+    hostUrl = js.Dynamic.global.AUTHN_URL.asInstanceOf[String],
     sessionStorage = SessionStorage.LocalStorage("session"),
   )
 )

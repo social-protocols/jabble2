@@ -10,6 +10,9 @@ const isProd = process.env.NODE_ENV == "production";
 const shoelaceIconsPath = 'node_modules/@shoelace-style/shoelace/dist/assets/icons';
 
 export default defineConfig({
+  define: {
+    AUTHN_URL: JSON.stringify(process.env.AUTHN_URL)
+  },
   plugins: [
     viteStaticCopy({
       targets: [

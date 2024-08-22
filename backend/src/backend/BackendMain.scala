@@ -14,7 +14,7 @@ object BackendMain extends IOApp {
     println("backend started.")
 
     val cliArgs   = args.map(CliArg.valueOf).toSet
-    val appConfig = AppConfig.fromEnv()
+    val appConfig = AppConfig.fromEnv
 
     if (cliArgs(CliArg.RepairMigrations)) {
       println("repairing migrations")

@@ -1,6 +1,11 @@
 is_strict: true
 environment:
   - FORCE_COLOR=1
+  - AUTHN_URL=http://localhost:3000
+  - AUTHN_ADMIN_URL=http://localhost:3001
+  - AUTHN_AUDIENCES=localhost
+  - AUTHN_HTTP_AUTH_USERNAME=admin
+  - AUTHN_HTTP_AUTH_PASSWORD=adminpw
 
 processes:
 
@@ -62,14 +67,14 @@ processes:
         --user $(id -u):$(id -g) \
         -v ./data:/data \
         -e DATABASE_URL="sqlite3://localhost//data/authn.db" \
-        -e APP_DOMAINS="localhost" \
-        -e AUTHN_URL="http://localhost:3000" \
+        -e APP_DOMAINS="$$AUTHN_AUDIENCES" \
+        -e AUTHN_URL="$$AUTHN_URL" \
         -e PORT=3001 \
         -e PUBLIC_PORT=3000 \
         -e SECRET_KEY_BASE="test" \
         -e ENABLE_SIGNUP=false \
-        -e HTTP_AUTH_USERNAME="admin" \
-        -e HTTP_AUTH_PASSWORD="adminpw" \
+        -e HTTP_AUTH_USERNAME="$$AUTHN_HTTP_AUTH_USERNAME" \
+        -e HTTP_AUTH_PASSWORD="$$AUTHN_HTTP_AUTH_PASSWORD" \
         keratin/authn-server:latest \
         sh -c "./authn migrate && ./authn server"
 

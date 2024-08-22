@@ -1,14 +1,14 @@
 # List available recipes in the order in which they appear in this file
 _default:
-    @just --list --unsorted
+  @just --list --unsorted
 
 # start local development environment (interleaved logs)
 dev:
-    process-compose up -t=false
+  find process-compose.yml | entr -nr process-compose up -t=false
 
 # start local development environment (tui)
 dev-tui:
-    process-compose up
+  process-compose up
 
 # open app database in sqlite repl
 db:
@@ -27,7 +27,7 @@ clean-rpc:
 
 # generate BSP (build server protocol) project
 gen-bsp:
-    mill mill.bsp.BSP/install
+  mill mill.bsp.BSP/install
 
 # generates a type-safe function for every query in queries.sql
 generate-query-code:
@@ -51,6 +51,7 @@ docker-build:
 
 # run production docker image
 docker-run:
+  # TODO: why is the image still running after Ctrl+C? Might have to do with --init?
   # to use jvm debugging on port 9010, 
   # in process-compose-prod.yml, add the JAVA_OPTS_DEBUG options to the java command
   
@@ -62,7 +63,7 @@ docker-run:
     -e GLOBALBRAIN_DATABASE_PATH="/data/globalbrain.db" \
     -e AUTHN_DATABASE_URL="sqlite3://localhost//data/authn.db" \
     -e AUTHN_APP_DOMAINS="localhost" \
-    -e AUTHN_AUTHN_URL="http://localhost:3000" \
+    -e AUTHN_URL="http://localhost:3000" \
     -e AUTHN_SECRET_KEY_BASE="test" \
     -e AUTHN_HTTP_AUTH_USERNAME="admin" \
     -e AUTHN_HTTP_AUTH_PASSWORD="adminpw" \
@@ -83,8 +84,16 @@ cloc:
 # deploy local state to production
 prod-deploy:
   read -p 'Are you sure? (y/n): ' confirm && [[ $confirm == [yY] ]] && \
-  FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD) --FLY_APP_NAME=jabble
+  FLY_API_TOKEN=$(flyctl tokens create deploy) earthly --allow-privileged --secret FLY_API_TOKEN +ci-deploy --COMMIT_SHA=$(git rev-parse HEAD) --FLY_APP_NAME=jabble --AUTHN_URL=https://jabble.fly.dev:3000
 
 # show live logs from production
 prod-logs:
-  flyctl logs -a jabble
+  flyctl logs
+
+# ssh connection to production server
+prod-ssh:
+  flyctl ssh console
+
+# benchmark http requests on production
+prod-benchmark:
+  wrk -t12 -c400 -d20s -s wrk-vote.lua https://jabble.fly.dev
