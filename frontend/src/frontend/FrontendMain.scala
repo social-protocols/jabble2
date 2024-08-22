@@ -15,6 +15,7 @@ import colibri.router.*
 import frontend.components.*
 import webcodegen.shoelace.SlIcon.{name as _, *}
 import webcodegen.shoelace.SlIcon
+import rpc.UserProfile
 
 // Outwatch documentation: https://outwatch.github.io/docs/readme.html
 
@@ -63,59 +64,62 @@ def app: VNode = {
   val refreshTrigger = VarEvent[Unit]()
 
   div(
-    components.Markdown("**bold** or not"),
     cls := "flex flex-col",
     refreshTrigger.observable
       .prepend(())
       .map(_ =>
-        VMod(
-          header(
-            cls := "flex flex-col w-full px-2 py-2",
-            div(
-              cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
-              button(
-                "Jabble ",
-                span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
-                onClick.as(Page.Index) --> page,
-                cls := "font-bold",
+        RpcClient.call
+          .getUserProfile()
+          .map(userProfile =>
+            VMod(
+              header(
+                cls := "flex flex-col w-full px-2 py-2",
+                div(
+                  cls := "flex flex-wrap items-center justify-between gap-4 sm:flex-nowrap md:gap-8",
+                  button(
+                    "Jabble ",
+                    span("alpha ", slIcon(SlIcon.name := "rocket"), cls := "opacity-50"),
+                    onClick.as(Page.Index) --> page,
+                    cls := "font-bold",
+                  ),
+                  div(
+                    cls := "flex items-center gap-10 ml-auto",
+                    userProfile match {
+                      case Some(profile) =>
+                        VMod(
+                          div(profile.userName, marginRight := "10px"),
+                          slButton(
+                            "Logout",
+                            onClick.doEffect {
+                              lift {
+                                val result = unlift(authnClient.logout.attempt)
+                                result match {
+                                  case Left(error) => println(error.getMessage())
+                                  case Right(_) =>
+                                    println("logged out")
+                                    refreshTrigger.set(())
+                                }
+                              }
+                            },
+                          ),
+                        )
+                      case None =>
+                        slButton("Login", onClick.as(Page.Login) --> page)
+                    },
+                  ),
+                ),
               ),
               div(
-                cls := "flex items-center gap-10 ml-auto",
-                RpcClient.call.getUserProfile().map {
-                  case Some(profile) =>
-                    VMod(
-                      div(profile.userName, marginRight := "10px"),
-                      slButton(
-                        "Logout",
-                        onClick.doEffect {
-                          lift {
-                            val result = unlift(authnClient.logout.attempt)
-                            result match {
-                              case Left(error) => println(error.getMessage())
-                              case Right(_) =>
-                                println("logged out")
-                                refreshTrigger.set(())
-                            }
-                          }
-                        },
-                      ),
-                    )
-                  case None =>
-                    slButton("Login", onClick.as(Page.Login) --> page)
+                cls := "mx-auto w-full max-w-3xl px-2",
+                page.map[VMod] {
+                  case Page.Index    => frontPage(refreshTrigger)
+                  case Page.Login    => loginPage(refreshTrigger)
+                  case Page.Post(id) => postPage(id.toLong, refreshTrigger, userProfile)
+                  case _             => div("page not found")
                 },
               ),
-            ),
-          ),
-          div(
-            cls := "mx-auto w-full max-w-3xl px-2",
-            page.map[VMod] {
-              case Page.Index    => frontPage(refreshTrigger)
-              case Page.Login    => loginPage(refreshTrigger)
-              case Page.Post(id) => postPage(id.toLong, refreshTrigger)
-              case _             => div("page not found")
-            },
-          ),
-        ),
+            )
+          )
       ),
   )
 }
@@ -152,13 +156,13 @@ case class CollapsedStatus(
   hideChildren: Map[Long, Boolean],
 )
 
-def postPage(postId: Long, refreshTrigger: VarEvent[Unit]): VMod = lift {
+def postPage(postId: Long, refreshTrigger: VarEvent[Unit], userProfile: Option[rpc.UserProfile]): VMod = lift {
   val initialPostTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
   val initialPostTreeData                   = unlift(RpcClient.call.getPostTreeData(postId))
   val parents                               = unlift(RpcClient.call.getParentThread(postId))
 
   initialPostTree match {
-    case Some(tree) => renderPostPage(tree, initialPostTreeData, parents, refreshTrigger)
+    case Some(tree) => renderPostPage(tree, initialPostTreeData, parents, refreshTrigger, userProfile)
     case None       => div(s"Post with id ${postId} not found")
   }
 }
@@ -168,6 +172,7 @@ def renderPostPage(
   initialPostTreeData: rpc.PostTreeData,
   parents: Vector[rpc.Post],
   refreshTrigger: VarEvent[Unit],
+  userProfile: Option[rpc.UserProfile],
 ): VMod = {
   val postTreeState     = Var(initialPostTree)
   val postTreeDataState = Var(initialPostTreeData)
@@ -185,7 +190,7 @@ def renderPostPage(
 
     div(
       parentThread(parents),
-      postWithReplies(initialPostTree, treeContext, refreshTrigger),
+      postWithReplies(initialPostTree, treeContext, refreshTrigger, userProfile),
       maxWidth := "960px",
       margin := "0 auto",
     )

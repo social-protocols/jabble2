@@ -21,6 +21,10 @@ reset-db:
   rm -f data/globalbrain.db
   sqlite3 -init /dev/null data/app.db < schema.sql
 
+# workaround for rpc linking errors
+clean-rpc:
+  mill clean "{rpc,frontend,backend}";
+
 # generate BSP (build server protocol) project
 gen-bsp:
     mill mill.bsp.BSP/install
