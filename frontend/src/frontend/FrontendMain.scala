@@ -157,7 +157,6 @@ case class CollapsedStatus(
 )
 
 def postPage(postId: Long, refreshTrigger: VarEvent[Unit], userProfile: Option[rpc.UserProfile]): VMod = lift {
-  println(s"postPage($postId), $userProfile")
   val initialPostTree: Option[rpc.PostTree] = unlift(RpcClient.call.getPostTree(postId))
   val initialPostTreeData                   = unlift(RpcClient.call.getPostTreeData(postId))
   val parents                               = unlift(RpcClient.call.getParentThread(postId))
@@ -175,13 +174,11 @@ def renderPostPage(
   refreshTrigger: VarEvent[Unit],
   userProfile: Option[rpc.UserProfile],
 ): VMod = {
-  println("renderPostPage")
   val postTreeState     = Var(initialPostTree)
   val postTreeDataState = Var(initialPostTreeData)
   val collapsedState    = Var(CollapsedStatus(initialPostTreeData.targetPostId, Map(), Map()))
 
   Rx {
-    println("Rx1")
     val treeContext: TreeContext = TreeContext(
       initialPostTreeData.targetPostId,
       postTreeState(),
