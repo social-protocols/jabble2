@@ -161,7 +161,7 @@ lint:
   BUILD +scalafmt
 
 ci-test:
-  # BUILD +test-migrations
+  BUILD +test-migrations
   BUILD +test-generate-query-code
   BUILD +lint
   BUILD +mill-compile
