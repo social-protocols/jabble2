@@ -13,4 +13,4 @@ sql:
       options:
         template: "queries_template.go.tmpl"
         filename: "Queries.scala"
-        formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin"
+        formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin --stdout"
