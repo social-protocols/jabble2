@@ -49,6 +49,13 @@ migrate-dev:
 check-migrations:
   find backend/resources/migrations schema.sql scripts/diff_schemas | entr -cnr scripts/diff_schemas
 
+
+# benchmark http requests against local backend
+benchmark name:
+  # Some requests require 
+  # export WRK_BEARER='...'
+  wrk -t12 -c400 -d20s -s "wrk/{{name}}.lua" http://localhost:8081
+
 # build production docker image
 docker-build:
   earthly +docker-build
@@ -100,6 +107,8 @@ prod-logs:
 prod-ssh:
   flyctl ssh console
 
-# benchmark http requests on production
-prod-benchmark:
-  wrk -t12 -c400 -d20s -s wrk-vote.lua https://jabble.fly.dev
+# benchmark http requests against production
+prod-benchmark name:
+  # Some requests require 
+  # export WRK_BEARER='...'
+  wrk -t12 -c400 -d20s -s "wrk/{{name}}.lua" https://jabble.fly.dev
