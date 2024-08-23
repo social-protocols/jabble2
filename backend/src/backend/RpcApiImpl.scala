@@ -24,22 +24,26 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 private val threadPool                     = Executors.newFixedThreadPool(2)
 private val dbec: ExecutionContextExecutor = ExecutionContext.fromExecutor(threadPool)
 
+val httpClient = EmberClientBuilder.default[IO].withTimeout(44.seconds).build.allocated.map(_._1).unsafeRunSync() // TODO not forever
+val authnClient = AuthnClient[IO](
+  AppConfig.fromEnv.authnClientConfig,
+  httpClient = httpClient,
+)
+val verifier = TokenVerifier[IO](AppConfig.fromEnv.authnClientConfig.issuer, AppConfig.fromEnv.authnClientConfig.audiences)
+
 class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
 
   // Authn integration
-  val headers: Option[Authorization] = request.headers.get[Authorization]
-  val token: Option[String]          = headers.collect { case Authorization(Credentials.Token(AuthScheme.Bearer, token)) => token }
-  val httpClient                     = EmberClientBuilder.default[IO].withTimeout(44.seconds).build.allocated.map(_._1).unsafeRunSync() // TODO not forever
-  val authnClient = AuthnClient[IO](
-    AppConfig.fromEnv.authnClientConfig,
-    httpClient = httpClient,
-  )
-  val verifier                          = TokenVerifier[IO](AppConfig.fromEnv.authnClientConfig.issuer, AppConfig.fromEnv.authnClientConfig.audiences)
+  lazy val headers: Option[Authorization] = request.headers.get[Authorization]
+  lazy val token: Option[String]          = headers.collect { case Authorization(Credentials.Token(AuthScheme.Bearer, token)) => token }
+
   def userAccountId: IO[Option[String]] = token.traverse(token => verifier.verify(token).map(_.accountId))
   def withUser[T](code: String => IO[T]): IO[T] = userAccountId.flatMap {
     case Some(accountId) => code(accountId)
     case None            => IO.raiseError(Exception("403 Unauthorized"))
   }
+
+  // RpcApi implementations
 
   def register(username: String, password: String): IO[Boolean] = lift {
     val accountImportResult = unlift(authnClient.importAccount(AccountImport(username, password)).attempt)
