@@ -29,6 +29,10 @@ clean-rpc:
 gen-bsp:
   mill mill.bsp.BSP/install
 
+# generate IntelliJ IDEA project
+gen-idea:
+  mill mill.idea.GenIdea/idea
+
 # generates a type-safe function for every query in queries.sql
 generate-query-code:
   scripts/generate-query-code
