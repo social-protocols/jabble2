@@ -42,7 +42,7 @@ def pathToPage(path: Path): Page = path match {
 }
 
 object Main extends IOApp.Simple {
-  def run = lift {
+  def run: IO[Unit] = lift {
     // render the component into the <div id="app"></div> in index.html
     unlift(Outwatch.renderReplace[IO]("#app", app, RenderConfig.showError))
   }
@@ -95,7 +95,7 @@ def app: VNode = {
                               lift {
                                 val result = unlift(authnClient.logout.attempt)
                                 result match {
-                                  case Left(error) => println(error.getMessage())
+                                  case Left(error) => println(error.getMessage)
                                   case Right(_) =>
                                     println("logged out")
                                     refreshTrigger.set(())

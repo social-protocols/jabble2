@@ -6,7 +6,7 @@ import org.http4s.client.Client
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global // TODO
 
-def submitVote(userId: String, postId: Long, direction: rpc.Direction, httpClient: Client[IO])(using con: DbCon) = {
+def submitVote(userId: String, postId: Long, direction: rpc.Direction, httpClient: Client[IO])(using con: DbCon): Unit = {
   val currentVote = getVote(userId, postId)
   val newState    = if (direction == currentVote) rpc.Direction.Neutral else direction
   val parentId    = db.PostRepo.findById(postId).flatMap(_.parentId)

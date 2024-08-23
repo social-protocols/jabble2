@@ -4,7 +4,7 @@ import cats.effect.IO
 import sloth.ext.jsdom.client.*
 
 object RpcClient {
-  import chameleon.ext.upickle.given // TODO: Option as null
+  import chameleon.ext.upickle.given
 
   private val headers: IO[Map[String, String]] = lift {
     unlift(authnClient.session).map(token => "Authorization" -> s"Bearer $token").toMap
