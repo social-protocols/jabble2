@@ -4,11 +4,11 @@ _default:
 
 # start local development environment (interleaved logs)
 dev:
-  find process-compose.yml | entr -nr process-compose up -t=false
+  find process-compose.yml | entr -nrz process-compose up --tui=false --no-server
 
 # start local development environment (tui)
 dev-tui:
-  process-compose up
+  process-compose up --tui=true --no-server
 
 # open app database in sqlite repl
 db:
@@ -83,7 +83,9 @@ format:
 
 # count lines of code in repo
 cloc:
-  cloc --vcs=git
+  # ignores generated code
+  cloc --vcs=git --fullpath \
+    --not-match-d=backend/src/backend/queries
 
 # deploy local state to production
 prod-deploy:
