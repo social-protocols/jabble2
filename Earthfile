@@ -36,7 +36,7 @@ test-generate-query-code:
   COPY schema.sql queries.sql queries_template.go.tmpl sqlc.yml .scalafmt.conf ./
   # workaround for https://github.com/scalameta/scalafmt/issues/4156
   # since sqlc is piping generated scala code through scalafmt (sqlc.yml)
-  RUN echo "object Main" | scalafmt --stdin --stdout > /dev/null
+  RUN echo "object Main" | devbox run -- scalafmt --stdin --stdout > /dev/null
   COPY backend/src/backend/queries/Queries.scala backend/src/backend/queries/
   RUN devbox run -- "sqlc vet && sqlc diff"
 
