@@ -50,6 +50,9 @@ processes:
       build:
         # watch should start, even if the initial build failed
         condition: process_completed
+    availability:
+      restart: always
+      max_restarts: 5
 
   query:
     command: find queries.sql schema.sql queries_template.go.tmpl sqlc.yml scripts/generate-query-code | entr -npr scripts/generate-query-code
