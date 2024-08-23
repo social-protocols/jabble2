@@ -500,50 +500,50 @@
       }
     },
     "mill@latest": {
-      "last_modified": "2024-08-13T00:39:45Z",
-      "resolved": "github:NixOS/nixpkgs/60dfaff009e440faefbaeb20d8dda3239ba4a439#mill",
+      "last_modified": "2024-08-21T20:16:49Z",
+      "resolved": "github:NixOS/nixpkgs/36a9aeaaa17a2d4348498275f9fe530cd4f9e519#mill",
       "source": "devbox-search",
-      "version": "0.11.11",
+      "version": "0.11.12",
       "systems": {
         "aarch64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/b807w43z1hjzi8zpiibcjkfsa9q7gw31-mill-0.11.11",
+              "path": "/nix/store/sph12x4spj7pai5fj4hwf9y73jzfr30l-mill-0.11.12",
               "default": true
             }
           ],
-          "store_path": "/nix/store/b807w43z1hjzi8zpiibcjkfsa9q7gw31-mill-0.11.11"
+          "store_path": "/nix/store/sph12x4spj7pai5fj4hwf9y73jzfr30l-mill-0.11.12"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/lq8aykllzbwgvibnz4f2cl7bmsmalys7-mill-0.11.11",
+              "path": "/nix/store/w2b2jp3w7wpdgd8s3kj8fzky6hml6zfa-mill-0.11.12",
               "default": true
             }
           ],
-          "store_path": "/nix/store/lq8aykllzbwgvibnz4f2cl7bmsmalys7-mill-0.11.11"
+          "store_path": "/nix/store/w2b2jp3w7wpdgd8s3kj8fzky6hml6zfa-mill-0.11.12"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/576c3alvw3ckwngpa0lgbbhz0i1xk5bg-mill-0.11.11",
+              "path": "/nix/store/7ax647vi017shya0vxp646pfrskn5784-mill-0.11.12",
               "default": true
             }
           ],
-          "store_path": "/nix/store/576c3alvw3ckwngpa0lgbbhz0i1xk5bg-mill-0.11.11"
+          "store_path": "/nix/store/7ax647vi017shya0vxp646pfrskn5784-mill-0.11.12"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/fdfy8bmph1k90bpg4078dkm2036wdx90-mill-0.11.11",
+              "path": "/nix/store/mq5s6qnb4zgw0i13l5wjmxj2r9ca8szd-mill-0.11.12",
               "default": true
             }
           ],
-          "store_path": "/nix/store/fdfy8bmph1k90bpg4078dkm2036wdx90-mill-0.11.11"
+          "store_path": "/nix/store/mq5s6qnb4zgw0i13l5wjmxj2r9ca8szd-mill-0.11.12"
         }
       }
     },
