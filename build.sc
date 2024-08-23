@@ -79,6 +79,7 @@ object backend extends AppScalaModule with AppScalacOptions {
   def moduleDeps = Seq(dbschema, rpc.jvm)
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.xerial:sqlite-jdbc::3.46.0.0",
+    ivy"com.zaxxer:HikariCP:5.1.0",
     ivy"com.augustnagro::magnum::1.2.0", // db access
     ivy"com.github.cornerman::sloth-http4s-server::${versions.sloth}",
     ivy"org.http4s::http4s-ember-server::0.23.24",

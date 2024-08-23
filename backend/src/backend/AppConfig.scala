@@ -2,18 +2,21 @@ package backend
 
 import org.sqlite.SQLiteDataSource
 import authn.backend.AuthnClientConfig
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 
 case class AppConfig(
   frontendDistributionPath: String,
   jdbcUrl: String,
   authnClientConfig: AuthnClientConfig,
 ) {
-  val dataSource = {
+  val dataSource: javax.sql.DataSource = {
     val ds = SQLiteDataSource()
     ds.setUrl(jdbcUrl)
     ds.setEnforceForeignKeys(true)
     ds.setJournalMode("WAL")
-    ds
+    val hikariConfig = HikariConfig()
+    hikariConfig.setDataSource(ds)
+    new HikariDataSource(hikariConfig)
   }
 }
 
