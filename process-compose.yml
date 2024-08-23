@@ -8,6 +8,10 @@ environment:
   - AUTHN_HTTP_AUTH_PASSWORD=adminpw
 
 processes:
+  sanitycheck:
+    command: scripts/check-dev-ports 12345 8081 3000 3001 8000
+    availability:
+      restart: "exit_on_failure"
 
   npm:
     command: bun install --color=always
@@ -40,8 +44,8 @@ processes:
     command: mill --jobs 0 --color true --watch backend.runBackground
     environment:
       - JDBC_URL=jdbc:sqlite:data/app.db
-      - FRONTEND_DISTRIBUTION_PATH=dist # TODO: doesn't make sense for dev
       - LOG_LEVEL=debug
+      - FRONTEND_DISTRIBUTION_PATH=dist # TODO: doesn't make sense for dev, static content is served by vite
     depends_on:
       build:
         # watch should start, even if the initial build failed
@@ -86,4 +90,3 @@ processes:
         -v ./data:/data \
         -e DATABASE_PATH=/data/globalbrain.db \
         global-brain
-

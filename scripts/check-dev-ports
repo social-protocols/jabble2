@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -Eeuo pipefail
+# cd to script location
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <port1> <port2> ..."
+    exit 1
+fi
+
+ports=("$@")
+used_ports=()
+
+check_port() {
+    local port=$1
+    if nc -z 127.0.0.1 "$port" &>/dev/null; then
+        used_ports+=("$port")
+    fi
+}
+
+echo -en "Checking if ports can be opened... "
+for port in "${ports[@]}"; do
+    check_port "$port"
+done
+
+if [ ${#used_ports[@]} -eq 0 ]; then
+    echo "OK"
+else
+    echo "The following ports are already in use:"
+    netstat -tlpn 2>/dev/null | awk -v ports="$(IFS="|"; echo "${used_ports[*]}")" '$4 ~ ":"(ports)"$" {print $0}'
+    exit 1
+fi
