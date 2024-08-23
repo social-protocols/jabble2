@@ -97,17 +97,51 @@
         }
       }
     },
-    "cloc": {
-      "resolved": "github:NixOS/nixpkgs/75a52265bda7fd25e06e3a67dee3f0354e73243c#cloc",
-      "source": "nixpkg",
+    "cloc@latest": {
+      "last_modified": "2024-08-14T11:41:26Z",
+      "resolved": "github:NixOS/nixpkgs/0cb2fd7c59fed0cd82ef858cbcbdb552b9a33465#cloc",
+      "source": "devbox-search",
+      "version": "2.02",
       "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/asxx91aj7fs5rcpxz2109c93qf2fm9my-cloc-2.02",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/asxx91aj7fs5rcpxz2109c93qf2fm9my-cloc-2.02"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/gkp7mnrhjf7m8k4dd68iw3vcb3q7jwac-cloc-2.02",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/gkp7mnrhjf7m8k4dd68iw3vcb3q7jwac-cloc-2.02"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/z8vbgi829mygvn7ry69jgzc49mdhjzyz-cloc-2.02",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/z8vbgi829mygvn7ry69jgzc49mdhjzyz-cloc-2.02"
+        },
         "x86_64-linux": {
           "outputs": [
             {
-              "path": "/nix/store/9qjj0bcfwf6gjjf6gpczqdfilpyymy29-cloc-1.98",
+              "name": "out",
+              "path": "/nix/store/ix912x7rrcaiqrrgsw9097r8vn8vfa92-cloc-2.02",
               "default": true
             }
-          ]
+          ],
+          "store_path": "/nix/store/ix912x7rrcaiqrrgsw9097r8vn8vfa92-cloc-2.02"
         }
       }
     },
@@ -592,54 +626,6 @@
             }
           ],
           "store_path": "/nix/store/mcvpwmw0a9jwnkxjy5ykpm6w36sx4ljl-process-compose-1.18.0"
-        }
-      }
-    },
-    "scalafmt@latest": {
-      "last_modified": "2024-07-31T08:48:38Z",
-      "resolved": "github:NixOS/nixpkgs/c3392ad349a5227f4a3464dce87bcc5046692fce#scalafmt",
-      "source": "devbox-search",
-      "version": "3.7.17",
-      "systems": {
-        "aarch64-darwin": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/zxq4mpsl3df0q9d8nanni9ww9h4067rb-scalafmt-3.7.17",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/zxq4mpsl3df0q9d8nanni9ww9h4067rb-scalafmt-3.7.17"
-        },
-        "aarch64-linux": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/906ip4rcphnnsagv2k64f0mr51m7nyg3-scalafmt-3.7.17",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/906ip4rcphnnsagv2k64f0mr51m7nyg3-scalafmt-3.7.17"
-        },
-        "x86_64-darwin": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/8f4xbh5i96dwgs7ang0z5nc9yh7miq0p-scalafmt-3.7.17",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/8f4xbh5i96dwgs7ang0z5nc9yh7miq0p-scalafmt-3.7.17"
-        },
-        "x86_64-linux": {
-          "outputs": [
-            {
-              "name": "out",
-              "path": "/nix/store/6wlszd1n8fdbaa3zvf5rzvp8largf6zd-scalafmt-3.7.17",
-              "default": true
-            }
-          ],
-          "store_path": "/nix/store/6wlszd1n8fdbaa3zvf5rzvp8largf6zd-scalafmt-3.7.17"
         }
       }
     },

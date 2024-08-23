@@ -13,11 +13,10 @@ devbox:
   USER ${DEVBOX_USER}:${DEVBOX_USER}
   COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} devbox.json devbox.json
   COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} devbox.lock devbox.lock
+  COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} .scalafmt.conf ./
+  COPY --chown=${DEVBOX_USER}:${DEVBOX_USER} --dir flakes ./
+  RUN cmp -s .scalafmt.conf flakes/scalafmt/.scalafmt.conf
   RUN devbox run -- echo "Installed Packages."
-
-  USER root:root
-  RUN apt-get update && apt-get -y install curl
-  USER ${DEVBOX_USER}:${DEVBOX_USER}
 
 test-migrations:
   FROM +devbox
@@ -30,13 +29,8 @@ test-migrations:
 test-generate-query-code:
   FROM +devbox
   WORKDIR /code
-  # since generated code is formatted using scalafmt, cache coursier
-  CACHE --chmod 0777 --id coursier /home/devbox/.cache/coursier
   COPY scripts/generate-query-code scripts/generate-query-code
   COPY schema.sql queries.sql queries_template.go.tmpl sqlc.yml .scalafmt.conf ./
-  # workaround for https://github.com/scalameta/scalafmt/issues/4156
-  # since sqlc is piping generated scala code through scalafmt (sqlc.yml)
-  RUN echo "object Main" | devbox run -- scalafmt --stdin --stdout > /dev/null
   COPY backend/src/backend/queries/Queries.scala backend/src/backend/queries/
   RUN devbox run -- "sqlc vet && sqlc diff"
 
@@ -147,18 +141,8 @@ scalafmt:
   FROM +devbox
   WORKDIR /code
   COPY .scalafmt.conf ./
-
-  # https://scalameta.org/scalafmt/docs/installation.html#native-image
-  USER root:root
-  ENV VERSION=$(awk -F'"' '/version/ {print $2; exit}' .scalafmt.conf)
-  ENV INSTALL_LOCATION=/usr/local/bin/scalafmt-native
-  RUN curl https://raw.githubusercontent.com/scalameta/scalafmt/master/bin/install-scalafmt-native.sh \
-      | bash -s -- $VERSION $INSTALL_LOCATION \
-   && $INSTALL_LOCATION --version
-  USER ${DEVBOX_USER}:${DEVBOX_USER}
-
   COPY --dir backend frontend rpc ./
-  RUN scalafmt-native --check
+  RUN devbox run -- scalafmt --check
 
 lint:
   BUILD +scalafmt
