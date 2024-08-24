@@ -42,8 +42,8 @@ test-generate-http-api-code:
   COPY httpApi/resources original/httpApi/resources
   COPY httpApi/src original/httpApi/src
   RUN devbox run -- "scripts/generate-http-api-code"
-  RUN diff --brief --recursive {original/,}backend/resources
-  RUN diff --brief --recursive {original/,}backend/src
+  RUN diff --brief --recursive original/httpApi/resources httpApi/resources
+  RUN diff --brief --recursive original/httpApi/src       httpApi/src
 
 mill-compile:
   FROM +devbox
