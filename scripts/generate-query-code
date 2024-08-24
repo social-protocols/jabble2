@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
 set -Eeuo pipefail
+# cd to root folder
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-# TODO: read directly from sqlc.yml using yq
-targetDir="backend/src/backend/queries"
+# Configuration: ../sqlc.yml
 
 echo "Linting queries..."
 sqlc vet
+
 echo "Generating query code..."
 sqlc generate
