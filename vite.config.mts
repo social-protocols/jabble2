@@ -53,6 +53,7 @@ export default defineConfig({
     proxy: {
       // to avoid CORS issues, proxy the requests to the backend
       '/RpcApi/': 'http://localhost:8081',
+      // TODO: '/api/': 'http://localhost:8081',
     },
     watch: {
       // changes in scala files should not reload browser.

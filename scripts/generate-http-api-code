@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail
+set -Eeuo pipefail
+# cd to root folder
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+SCALA_OUT=httpApi/src
+RESOURCE_OUT=httpApi/resources
+
+rm -rf "$SCALA_OUT" "$RESOURCE_OUT"
+
+smithy4s generate \
+	--output "$SCALA_OUT" \
+	--resource-output "$RESOURCE_OUT" \
+	httpApi.smithy
+
+scalafmt "$SCALA_OUT"
