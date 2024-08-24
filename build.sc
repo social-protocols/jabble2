@@ -15,7 +15,7 @@ trait AppScalaModule extends ScalaModule {
     val authn    = "0.1.3"
     val colibri  = "0.8.4"
     val outwatch = "1.0.0"
-    val sloth    = "0.7.5"
+    val sloth    = "0.8.0"
   }
   def ivyDeps = Agg(
     ivy"org.typelevel::cats-effect::3.5.4",

@@ -5,7 +5,7 @@ import cats.effect.IO
 
 object RpcLogHandlerAnsi extends LogHandler[IO] {
   def logRequest[A, T](
-    path: List[String],
+    method: sloth.Method,
     argumentObject: A,
     result: IO[T],
   ): IO[T] = {
@@ -13,7 +13,8 @@ object RpcLogHandlerAnsi extends LogHandler[IO] {
 
     val coloredArgString = pprint.apply(argumentObject, width = width, showFieldNames = false).toString()
 
-    val apiName = path.mkString(".")
+    // val apiName = s"${method.traitName}.${method.methodName}"
+    val apiName = s"${method.methodName}"
     println(s"${fansi.Color.Cyan(s"-> ${apiName}")}($coloredArgString)")
     result.attempt.timed.map { (duration, result) =>
       val durationMs = duration.toMillis
