@@ -8,13 +8,23 @@ environment:
   - AUTHN_HTTP_AUTH_PASSWORD=adminpw
 
 processes:
-  sanitycheck:
+  sanity:
     command: scripts/check-dev-ports 12345 8081 3000 3001 8000
     availability:
       restart: "exit_on_failure"
 
   npm:
     command: bun install --color=always
+
+
+  initdb:
+    command: |
+      if [ ! -f data/app.db ]; then
+        echo "Creating data/app.db..."
+        sqlite3 -init /dev/null data/app.db < schema.sql
+      else
+        echo "data/app.db already exists."
+      fi
 
   build:
     # initial mill build, so that vite finds the js files referenced in main.js
@@ -54,18 +64,20 @@ processes:
       restart: always
       max_restarts: 5
 
-  query:
+  sqlc:
     command: find queries.sql schema.sql queries_template.go.tmpl sqlc.yml scripts/generate-query-code | entr -npr scripts/generate-query-code
+    depends_on:
+      build:
+        # watch should start, even if the initial build failed
+        condition: process_completed
 
-  rpc-re:
-    # Workaround after changing sloth rpc api trait.
-    # Somehow a change in the rpc trait is not detected by the compiler.
-    # We need to clean and rebuild...
-    # TODO: isolate and report bug
-    command: find rpc | entr -np bash -c 'echo "cleaning rpc... (incremental compilation workaround)"; mill clean "{rpc,frontend,backend}"; touch rpc/src/rpc/RpcApi.scala'
 
-  db:
+  mgrate:
     command: find schema.sql scripts/dev-db-migration-atlas | entr -n scripts/dev-db-migration-atlas
+    depends_on:
+      initdb:
+        # watch should start, even if the initial build failed
+        condition: process_completed
 
   auth:
     command: |
@@ -93,3 +105,11 @@ processes:
         -v ./data:/data \
         -e DATABASE_PATH=/data/globalbrain.db \
         global-brain
+
+  rpc-re:
+    # Workaround after changing sloth rpc api trait.
+    # Somehow a change in the rpc trait is not detected by the compiler.
+    # We need to clean and rebuild...
+    # TODO: isolate and report bug
+    command: find rpc | entr -np bash -c 'echo "cleaning rpc... (incremental compilation workaround)"; mill clean "{rpc,frontend,backend}"; touch rpc/src/rpc/RpcApi.scala'
+
