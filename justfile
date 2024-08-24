@@ -33,10 +33,6 @@ gen-bsp:
 gen-idea:
   mill mill.idea.GenIdea/idea
 
-# generates a type-safe function for every query in queries.sql
-generate-query-code:
-  scripts/generate-query-code
-
 # creates a new migration by diffing existing migrations against schema.sql
 new-migration name:
   scripts/new-db-migration-atlas "{{name}}"

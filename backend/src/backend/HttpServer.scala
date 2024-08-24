@@ -12,14 +12,18 @@ import org.http4s.server.middleware.Logger
 import org.http4s.server.middleware.ErrorAction
 import org.http4s.server.staticcontent.{fileService, FileService, MemoryCache}
 import sloth.ext.http4s.server.HttpRpcRoutes
+import smithy4s.http4s.SimpleRestJsonBuilder
 
 import scala.concurrent.duration.DurationInt
+import httpApi._
 
 object HttpServer {
   def start(config: AppConfig): IO[Unit] = asyncScope[IO] {
     val routes =
       ServerRoutes.rpcRoutes(config) <+>
-        ServerRoutes.fileRoutes(config)
+        ServerRoutes.fileRoutes(config) <+>
+        await(ServerRoutes.httpApi) <+>
+        ServerRoutes.httpApiDocs
 
     def errorHandler(t: Throwable, msg: => String): IO[Unit] =
       IO.println(msg) >> IO.println(t) >> IO(t.printStackTrace())
@@ -62,4 +66,10 @@ private object ServerRoutes {
       )
     )
   }
+
+  val httpApi: Resource[IO, HttpRoutes[IO]] =
+    SimpleRestJsonBuilder.routes(HttpApiImpl).resource
+
+  val httpApiDocs: HttpRoutes[IO] =
+    smithy4s.http4s.swagger.docs[IO](HttpApiService)
 }

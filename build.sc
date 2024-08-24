@@ -16,6 +16,7 @@ trait AppScalaModule extends ScalaModule {
     val colibri  = "0.8.4"
     val outwatch = "1.0.0"
     val sloth    = "0.8.0"
+    val smithy   = "0.18.23"
   }
   def ivyDeps = Agg(
     ivy"org.typelevel::cats-effect::3.5.4",
@@ -76,7 +77,7 @@ object frontend extends AppScalaJSModule with AppScalacOptions {
 }
 
 object backend extends AppScalaModule with AppScalacOptions {
-  def moduleDeps = Seq(dbschema, rpc.jvm)
+  def moduleDeps = Seq(dbschema, rpc.jvm, httpApi)
   def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.xerial:sqlite-jdbc::3.46.0.0",
     ivy"com.zaxxer:HikariCP:5.1.0",
@@ -85,12 +86,19 @@ object backend extends AppScalaModule with AppScalacOptions {
     ivy"org.http4s::http4s-ember-server::0.23.24",
     ivy"org.http4s::http4s-ember-client::0.23.24",
     ivy"org.http4s::http4s-dsl::0.23.24",
+    ivy"com.disneystreaming.smithy4s::smithy4s-http4s-swagger:${versions.smithy}",
     ivy"com.outr::scribe-slf4j2::3.13.0",  // logging
     ivy"org.flywaydb:flyway-core::10.6.0", // migrations
     ivy"com.github.cornerman::keratin-authn-backend::${versions.authn}",
     ivy"io.github.arainko::ducktape::0.2.1",
     ivy"com.lihaoyi::fansi:0.5.0",
     ivy"com.lihaoyi::pprint:0.9.0",
+  )
+}
+
+object httpApi extends AppScalaModule {
+  def ivyDeps = super.ivyDeps() ++ Agg(
+    ivy"com.disneystreaming.smithy4s::smithy4s-core:${versions.smithy}"
   )
 }
 

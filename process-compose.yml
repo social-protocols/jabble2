@@ -30,6 +30,7 @@ processes:
     # initial mill build, so that vite finds the js files referenced in main.js
     command: |
       scripts/generate-query-code
+      scripts/generate-http-api-code
       mill --jobs 0 --color true '{backend.compile,frontend.fastLinkJS}'
 
   vite:
@@ -71,6 +72,12 @@ processes:
         # watch should start, even if the initial build failed
         condition: process_completed
 
+  smithy:
+    command: find httpApi.smithy scripts/generate-query-code | entr -npr scripts/generate-http-api-code
+    depends_on:
+      build:
+        # watch should start, even if the initial build failed
+        condition: process_completed
 
   mgrate:
     command: find schema.sql scripts/dev-db-migration-atlas | entr -n scripts/dev-db-migration-atlas

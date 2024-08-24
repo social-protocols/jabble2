@@ -34,6 +34,17 @@ test-generate-query-code:
   COPY backend/src/backend/queries/Queries.scala backend/src/backend/queries/
   RUN devbox run -- "sqlc vet && sqlc diff"
 
+test-generate-http-api-code:
+  FROM +devbox
+  WORKDIR /code
+  COPY scripts/generate-http-api-code scripts/generate-http-api-code
+  COPY httpApi.smithy ./
+  COPY httpApi/resources original/httpApi/resources
+  COPY httpApi/src original/httpApi/src
+  RUN devbox run -- "scripts/generate-http-api-code"
+  RUN diff --brief --recursive {original/,}backend/resources
+  RUN diff --brief --recursive {original/,}backend/src
+
 mill-compile:
   FROM +devbox
   WORKDIR /code
@@ -150,6 +161,7 @@ lint:
 ci-test:
   BUILD +test-migrations
   BUILD +test-generate-query-code
+  BUILD +test-generate-http-api-code
   BUILD +lint
   BUILD +mill-compile
 
