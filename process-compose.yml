@@ -54,8 +54,8 @@ processes:
     command: mill --jobs 0 --color true --watch backend.runBackground
     environment:
       - JDBC_URL=jdbc:sqlite:data/app.db
-      - LOG_LEVEL=debug
       - FRONTEND_DISTRIBUTION_PATH=dist # TODO: doesn't make sense for dev, static content is served by vite
+      # - LOG_LEVEL=debug
     depends_on:
       build:
         # watch should start, even if the initial build failed
