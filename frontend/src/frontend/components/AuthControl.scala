@@ -45,15 +45,14 @@ def authControl(authnClient: AuthnClient[IO], refreshTrigger: VarEvent[Unit]) = 
           onClick.doEffect {
             lift {
               errorState.set(None)
-              val result =
-                unlift(authnClient.login(Credentials(username = usernameForLoginState(), password = passwordForLoginState())).attempt)
-              result match {
-                case Left(error) =>
+              try {
+                unlift(authnClient.login(Credentials(username = usernameForLoginState(), password = passwordForLoginState())))
+                println("login successful")
+                refreshTrigger.set(())
+              } catch {
+                case error =>
                   println(s"login error: ${error.getMessage()}")
                   errorState.set(Some(error.getMessage()))
-                case Right(_) =>
-                  println("login successful")
-                  refreshTrigger.set(())
               }
             }
           }
@@ -80,18 +79,13 @@ def authControl(authnClient: AuthnClient[IO], refreshTrigger: VarEvent[Unit]) = 
           onClick.stopPropagation.doAction {
             lift {
               println("registering...")
-              val result = unlift(RpcClient.call.register(username = usernameForSignupState(), password = passwordForSignupState()).attempt)
-              result match {
-                case Left(error) =>
-                  println(s"registration error: ${error.getMessage()}")
-                case Right(success) =>
-                  if (success) {
-                    println("logging in...")
-                    unlift(authnClient.login(Credentials(username = usernameForSignupState(), password = passwordForSignupState())))
-                    refreshTrigger.set(())
-                  } else {
-                    println("could not register")
-                  }
+              val success = unlift(RpcClient.call.register(username = usernameForSignupState(), password = passwordForSignupState()))
+              if (success) {
+                println("logging in...")
+                unlift(authnClient.login(Credentials(username = usernameForSignupState(), password = passwordForSignupState())))
+                refreshTrigger.set(())
+              } else {
+                println("could not register")
               }
             }.unsafeRunAndForget()
           }

@@ -47,24 +47,24 @@ class RpcApiImpl(ds: DataSource, request: Request[IO]) extends rpc.RpcApi {
   // RpcApi implementations
 
   def register(username: String, password: String): IO[Boolean] = lift {
-    val accountImportResult = unlift(authnClient.importAccount(AccountImport(username, password)).attempt)
-    accountImportResult match {
-      case Left(error) =>
+    try {
+      val accountImport = unlift(authnClient.importAccount(AccountImport(username, password)))
+      try {
+        magnum.connect(ds) {
+          db.UserProfileRepo.insert(db.UserProfile.Creator(userId = accountImport.id.toString, userName = username))
+        }
+        true
+      } catch {
+        case error =>
+          // if database fails, remove the just created account
+          unlift(authnClient.archiveAccount(accountImport.id.toString))
+          throw error
+          false
+      }
+    } catch {
+      case error =>
         scribe.info("account creation failed", error)
         false
-      case Right(accountImport) =>
-        Either.catchNonFatal {
-          magnum.connect(ds) {
-            db.UserProfileRepo.insert(db.UserProfile.Creator(userId = accountImport.id.toString, userName = username))
-          }
-        } match {
-          case Left(error) =>
-            // if database fails, remove the just created account
-            unlift(authnClient.archiveAccount(accountImport.id.toString))
-            throw error
-            false
-          case Right(_) => true
-        }
     }
   }
 

@@ -93,19 +93,20 @@ def app: VNode = {
                             "Logout",
                             onClick.doEffect {
                               lift {
-                                val result = unlift(authnClient.logout.attempt)
-                                result match {
-                                  case Left(error) => println(error.getMessage)
-                                  case Right(_) =>
-                                    println("logged out")
-                                    refreshTrigger.set(())
+                                try {
+                                  unlift(authnClient.logout.attempt)
+                                  println("logged out")
+                                  refreshTrigger.set(())
+                                } catch {
+                                  case error =>
+                                    println(error.getMessage)
                                 }
                               }
                             },
                           ),
                         )
                       case None =>
-                        slButton("Login", onClick.as(Page.Login) --> page)
+                        slButton("Login / Register", onClick.as(Page.Login) --> page)
                     },
                   ),
                 ),
