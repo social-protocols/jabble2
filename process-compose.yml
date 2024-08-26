@@ -105,6 +105,7 @@ processes:
         -v ./data:/data \
         -e DATABASE_PATH=/data/globalbrain.db \
         global-brain
+    is_tty: true # fix colors of julia webserver
 
   rpc-re:
     # Workaround after changing sloth rpc api trait.
