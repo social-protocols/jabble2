@@ -86,7 +86,7 @@ def {{.Name}}({{range .Params}}
   {{- if eq .Cmd ":exec" }}.update.run(){{end}}
   {{- if eq .Cmd ":many" }}.query[{{ $rowType }}].run(){{end}}
   {{- if eq .Cmd ":one" }}.query[{{ $rowType }}].run().head{{end}}
-  println(s"{{.Name}}({{range .Params}}{{.Column.Name}}=${ {{.Column.Name}} }, {{end}}) => ${result}")
+  println(s"queries.{{.Name}}({{range $index, $param := .Params}}{{if $index}}, {{end}}{{$param.Column.Name}}=${ {{$param.Column.Name}} }{{end}}) => ${result}")
   result
 }
 

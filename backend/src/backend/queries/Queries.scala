@@ -40,7 +40,7 @@ where parent_id = ?
     params,
     fragWriter(params),
   ).query[Row_getReplyIds].run()
-  println(s"getReplyIds(parent_id=${parent_id}, ) => ${result}")
+  println(s"queries.getReplyIds(parent_id=${parent_id}) => ${result}")
   result
 }
 
@@ -61,7 +61,7 @@ where ancestor_id = ?
     params,
     fragWriter(params),
   ).query[Row_getDescendantIds].run()
-  println(s"getDescendantIds(ancestor_id=${ancestor_id}, ) => ${result}")
+  println(s"queries.getDescendantIds(ancestor_id=${ancestor_id}) => ${result}")
   result
 }
 
@@ -85,7 +85,7 @@ and post_id = ?
     params,
     fragWriter(params),
   ).query[Row_getVote].run()
-  println(s"getVote(user_id=${user_id}, post_id=${post_id}, ) => ${result}")
+  println(s"queries.getVote(user_id=${user_id}, post_id=${post_id}) => ${result}")
   result
 }
 
@@ -107,6 +107,6 @@ and vote != 0
     params,
     fragWriter(params),
   ).query[Row_getVoteCount].run().head
-  println(s"getVoteCount(post_id=${post_id}, ) => ${result}")
+  println(s"queries.getVoteCount(post_id=${post_id}) => ${result}")
   result
 }
