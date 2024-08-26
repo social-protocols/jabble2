@@ -34,8 +34,7 @@ object RpcLogHandlerAnsi extends LogHandler[IO] {
 
           r
         case r @ Left(error) =>
-          println(fansi.Color.Red(s"<- ${error.getMessage} [${durationMs}ms]"))
-          error.printStackTrace()
+          println(fansi.Color.Red(s"${apiName} error: ${error.getMessage} [${durationMs}ms]"))
 
           r
       }
