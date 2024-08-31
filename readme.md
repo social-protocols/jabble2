@@ -1,75 +1,52 @@
-# Outwatch Frontend Example
+# Jabble
 
-A [github-template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository) for [outwatch](https://github.com/outwatch/outwatch).
+## Key Technologies
 
-Technologies used:
-- [Outwatch](https://github.com/outwatch/outwatch/) functional web-frontend library
-- [Scala 3](https://www.scala-lang.org/) programming language, compiled to javascript using [ScalaJS](https://www.scala-js.org/)
-- [Mill](https://mill-build.com) build tool
-- [Vite](https://vitejs.dev) hot reloading and bundling
-- [devbox](https://www.jetpack.io/devbox) for a reproducible dev environment
-- [direnv](https://direnv.net/) to automatically load dev environment when entering project directory
+### Stack & Development
 
+- [devbox](https://www.jetpack.io/devbox) and nix flakes for a reproducible dev environment, <devbox.json>
+- [direnv](https://direnv.net/) to automatically load dev environment when entering project directory, <.envrc>
+- [just](https://github.com/casey/just) runner for common commands used in development, <justfile>
+- [process-compose](https://github.com/F1bonacc1/process-compose) process orchestrator used for dev environment (<process-compose.yml>) and prod environment (<process-compose-prod.yml>)
+- [entr](https://github.com/eradman/entr) Run arbitrary commands when files change, used for development reloading
+- [Scala 3](https://www.scala-lang.org/) programming language, compiled to javascript using [ScalaJS](https://www.scala-js.org/), used for frontend and backend
+- [Mill](https://mill-build.com) build tool, <build.sc>
+- [Outwatch](https://github.com/outwatch/outwatch/) functional web-frontend library, <frontend/src/frontend/FrontendMain.scala>
+- [Vite](https://vitejs.dev) hot reloading and bundling, <vite.config.mts>
+- earthly locally runnable docker-like CI with very good caching, <Earthfile>
+- [TailwindCSS](https://tailwindcss.com/)
+- [Keratin Authn](https://keratin.github.io/) simple authentication service
+- [fly.io](https://fly.io/) simple cloud hosting provider, <fly.toml>
+- smithy with smithy4s for http api code generation
+- mergify for automatic PR merging with a merge queue
+- bun for fast npm installs
+- wrk for http benchmarking
+
+### Database
+
+- [SQLite](https://www.sqlite.org/) lightweight, fast single-file relational database
+- [magnum](https://github.com/AugustNagro/magnum), JDBC library for Scala 3
+- [HikariCP](https://github.com/brettwooldridge/HikariCP) fast JDBC connection pool, see <backend/src/backend/AppConfig.scala>
+- [scala-db-codegen](https://github.com/cornerman/scala-db-codegen) using [SchemaCrawler](https://www.schemacrawler.com/) to read <schema.sql> and generate schema types for magnum. Template <schema.scala.ssp>, config in <build.sc>
+- [flyway](https://flywaydb.org/) for Database Migrations
+- [Atlas](https://atlasgo.io/docs) generate SQL migrations by diffing <schema.sql> with migrations <backend/resources/migrations/> (`just new-migration <name>`) or the current dev-database (`just migrate-dev`).
+- [sqlc](https://docs.sqlc.dev/en/latest/) with [sqlc-gen-from-template](https://github.com/fdietze/sqlc-gen-from-template) to generate type-safe functions in <backend/src/backend/queries/Queries.scala> using a template <queries_template.go.tmpl> for <queries.sql>. Config: [sqlc.yml], `just generate-query-code`
 
 ## Getting Started
 
 1. Setup on your system:
    - [devbox](https://www.jetpack.io/devbox)
    - [direnv](https://direnv.net/)
-
-   If you don't want to spend the time to setup those, skip to the manual setup section.
-1. Clone the example
-    ```shell
-    # if you want to just get the template locally without creating a github repo:
-    git clone --depth 1 https://github.com/outwatch/example-mill-vite my-first-outwatch-project
-
-    # OR: create new repo on github based on this template (using github-cli)
-    gh repo create my-first-outwatch-project --template outwatch/example-mill-vite --public --clone
-
-
-    cd my-first-outwatch-project
-    ```
-1. Allow direnv to enter the dev environment when entering the project directory
-    ```shell
-    direnv allow
-    ```
-    Which will load [.envrc](.envrc) and install the packages from [devbox.json](devbox.json).
-1. Start the dev server
-    ```shell
-    devbox services up
-    ```
-   The services are defined in [process-compose.yml](process-compose.yml).
-1. Point your browser to <http://localhost:12345>
-1. Edit [FrontendMain.scala](frontend/src/main/scala/frontend/FrontendMain.scala) to see hot reloading.
-1. Production build:
-   ```shell
-   # compile frontend 
-   mill frontend.fullLinkJS
-
-   # bundle frontend to /dist
-   npx vite build
-
-   # run backend and serve /dist
-   mill backend.run
+  
    ```
-   Point your browser to <http://localhost:8080>
+   # to enter the devbox dev shell loaded by direnv
+   direnv allow
+   ```
 
+1. Run the development stack
 
-## Manual Setup without devbox or direnv
+  ```
+  just dev
+  ```
 
-1. Install:
-    - [Mill](https://mill-build.com)
-    - [NodeJS](https://nodejs.org) (provides `npm`)
-1. Run:
-    ```shell
-    npm install
-
-    # for automatically recompiling Scala sources to Javascript
-    mill --watch frontend.fastLinkJS
-
-    # in another terminal
-    # to start the devserver with hot reloading
-    npx vite dev
-    ```
 1. Point your browser to <http://localhost:12345>
-1. Edit [FrontendMain.scala](frontend/src/main/scala/frontend/FrontendMain.scala) to see hot reloading.
