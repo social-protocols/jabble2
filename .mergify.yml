@@ -1,3 +1,5 @@
+# https://docs.mergify.com/
+
 pull_request_rules:
   - name: Merge dependency-update PRs
     conditions:

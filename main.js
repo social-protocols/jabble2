@@ -1,5 +1,7 @@
-import './style.css';
-import 'scalajs:main.js';
+// https://vitejs.dev
 
-import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
-setBasePath('/shoelace');
+import "./style.css";
+import "scalajs:main.js";
+
+import { setBasePath } from "@shoelace-style/shoelace/dist/utilities/base-path.js";
+setBasePath("/shoelace");

@@ -1,3 +1,5 @@
+// https://mill-build.com
+
 import mill._, scalalib._, scalajslib._
 
 import $repo.`https://oss.sonatype.org/content/repositories/snapshots`

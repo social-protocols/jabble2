@@ -1,3 +1,4 @@
+// https://www.jetpack.io/devbox
 {
   "$schema": "https://raw.githubusercontent.com/jetpack-io/devbox/0.10.1/.schema/devbox.schema.json",
   "packages": [
@@ -18,11 +19,11 @@
     "cloc@latest",
     "wrk@latest",
     "path:flakes/scalafmt#scalafmt",
-    "path:flakes/smithy4s#smithy4s",
+    "path:flakes/smithy4s#smithy4s"
   ],
   "shell": {
     // "init_hook": "export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true PLAYWRIGHT_BROWSERS_PATH=$(nix build --print-out-paths nixpkgs#playwright-driver.browsers)",
-  },
+  }
 }
 // this file supports comments
 // vim: set ft=jsonc:

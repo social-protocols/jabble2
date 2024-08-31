@@ -1,3 +1,5 @@
+# https://github.com/F1bonacc1/process-compose
+
 is_strict: true
 environment:
   - FORCE_COLOR=1
@@ -15,7 +17,6 @@ processes:
 
   npm:
     command: bun install --color=always
-
 
   initdb:
     command: |
@@ -71,7 +72,6 @@ processes:
         # watch should start, even if the initial build failed
         condition: process_completed
 
-
   mgrate:
     command: find schema.sql scripts/dev-db-migration-atlas | entr -n scripts/dev-db-migration-atlas
     depends_on:
@@ -113,4 +113,3 @@ processes:
     # We need to clean and rebuild...
     # TODO: isolate and report bug
     command: find rpc | entr -np bash -c 'echo "cleaning rpc... (incremental compilation workaround)"; mill clean "{rpc,frontend,backend}"; touch rpc/src/rpc/RpcApi.scala'
-

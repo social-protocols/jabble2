@@ -1,16 +1,18 @@
+# https://docs.sqlc.dev/en/latest/
+
 version: "2"
 plugins:
-- name: sqlc-gen-from-template
-  process:
-    cmd: sqlc-gen-from-template # https://github.com/fdietze/sqlc-gen-from-template
+  - name: sqlc-gen-from-template
+    process:
+      cmd: sqlc-gen-from-template # https://github.com/fdietze/sqlc-gen-from-template
 sql:
   - engine: "sqlite"
     queries: "queries.sql"
     schema: "schema.sql"
     codegen:
-    - out: backend/src/backend/queries
-      plugin: sqlc-gen-from-template
-      options:
-        template: "queries_template.go.tmpl"
-        filename: "Queries.scala"
-        formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin --stdout"
+      - out: backend/src/backend/queries
+        plugin: sqlc-gen-from-template
+        options:
+          template: "queries_template.go.tmpl"
+          filename: "Queries.scala"
+          formatter_cmd: ".devbox/nix/profile/default/bin/scalafmt --stdin --stdout"
