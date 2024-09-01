@@ -38,7 +38,7 @@ Collaborative Fact Checking. This is a work in progress.
 - [fly.io](https://fly.io/) simple cloud hosting provider: [fly.toml](fly.toml), deployment happens via [Earthfile](Earthfile) in a GitHub Action [.github/workflows/deploy.yml](.github/workflows/deploy.yml)
 - [Keratin Authn](https://keratin.github.io/) with [keratin-authn-scala](https://github.com/cornerman/keratin-authn-scala), simple self-hosted authentication service, deployed alongside the backend using [process-compose-prod.yml](process-compose-prod.yml)
 - [Scala 3](https://www.scala-lang.org/) programming language, compiled to javascript using [ScalaJS](https://www.scala-js.org/), used for [frontend](frontend/src/frontend/) and [backend](backend/src/backend/)
-- [Mill](https://mill-build.com) build tool: [build.sc](build.sc)
+- [Mill](https://mill-build.com) build tool for Scala: [build.sc](build.sc)
 - [sloth](https://github.com/cornerman/sloth) Type safe RPC calls for Scala: [RpcApi.scala](rpc/src/rpc/RpcApi.scala), [RpcApiImpl.scala](backend/src/backend/RpcApiImpl.scala), [RpcClient.scala](frontend/src/frontend/RpcClient.scala), [HttpServer.scala](backend/src/backend/HttpServer.scala)
 - [smithy](https://smithy.io) with [smithy4s](https://disneystreaming.github.io/smithy4s/) for http api code generation
 - [Outwatch](https://github.com/outwatch/outwatch/) web-frontend library for ScalaJS: Entrypoint in [FrontendMain.scala](frontend/src/frontend/FrontendMain.scala)
